@@ -53,12 +53,15 @@ int key_from_path(gcry_sexp_t *key, const char *p) {
 }
 
 int sign(gcry_sexp_t *out, gcry_sexp_t *key, const char *v) {
+	gcry_error_t r;
+	gcry_sexp_t sig;
+	gcry_sexp_t data;
 	char in[BUFLEN];
 
-	sprintf(in, "(data(flags eddsa(hash-algo sha256(value %s))))", v);
-	debugLog(DEBUG_TRACE, in);
-
-	return 0;
+	sprintf(in, "(data(flags eddsa(hash-algo sha512(value %s))))", v);
+	gcry_sexp_new(&data, in, strlen(in), 0);
+	r = gcry_pk_sign(&sig, data, *key);
+	return r;
 }
 
 int GpgStore::check(std::string p) {
