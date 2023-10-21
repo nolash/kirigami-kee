@@ -1,0 +1,5 @@
+add_executable(test_gpg test_gpg.cpp ../gpg.cpp ../term_debug.c)
+target_link_libraries(test_gpg gcrypt)
+target_include_directories(test_gpg PRIVATE ..)
+add_test(NAME gpg COMMAND test_gpg)
+configure_file(key.bin ${CMAKE_CURRENT_BINARY_DIR}/key.bin COPYONLY)

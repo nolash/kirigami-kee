@@ -1,0 +1,6 @@
+enum keeError {
+	ERR_OK,
+	ERR_NOCRYPTO,
+	ERR_NOKEY,
+	ERR_CORRUPTKEY,
+};
