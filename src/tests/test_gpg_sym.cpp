@@ -23,7 +23,7 @@ int main() {
 	if (r) {
 		return r;
 	}
-	r = decrypt(&plain_r, (const char*)cipher, 3, key, nonce);
+	r = decrypt(&plain_r, (const char*)cipher, 1024, key, nonce);
 	if (r) {
 		return r;
 	}

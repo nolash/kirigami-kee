@@ -12,62 +12,90 @@
 #define CHACHA20_KEY_LENGTH_BYTES 32
 #define CHACHA20_NONCE_LENGTH_BYTES 12
 
+#define ENCRYPT_BLOCKSIZE 1024
 #define BUFLEN 1024 * 1024
 
 const char *gpgVersion = nullptr;
 
+// TODO pad
+
+int pad(char *keydata_raw, std::string keydata) {
+	int l;
+	int d;
+	int m;
+
+	strcpy(keydata_raw, (char*)keydata.c_str());
+	l = keydata.length() + 1;
+	d = l / ENCRYPT_BLOCKSIZE;
+	m = ENCRYPT_BLOCKSIZE - (l % ENCRYPT_BLOCKSIZE);
+	if (m > 0) {
+		gcry_randomize(keydata_raw+l, m, GCRY_STRONG_RANDOM);
+	}
+	return l + m;
+}
+
+int create_handle(gcry_cipher_hd_t *h, const char *key, const char *nonce) {
+	gcry_error_t e;
+
+	e = gcry_cipher_open(h, GCRY_CIPHER_CHACHA20, GCRY_CIPHER_MODE_POLY1305, GCRY_CIPHER_SECURE);
+	if (e) {
+		return ERR_NOCRYPTO;
+	}
+	e = gcry_cipher_setkey(*h, key, CHACHA20_KEY_LENGTH_BYTES);
+	if (e) {
+		return ERR_NOCRYPTO;
+	}
+	e = gcry_cipher_setiv(*h, nonce, CHACHA20_NONCE_LENGTH_BYTES);
+	if (e) {
+		return ERR_NOCRYPTO;
+	}
+	return ERR_OK;
+}
+
+void free_handle(gcry_cipher_hd_t *h) {
+	gcry_cipher_close(*h);
+}
 
 int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const char *key, const char *nonce) {
+	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
-	const char *keydata_raw;
+	char keydata_raw[ENCRYPT_BLOCKSIZE];
 
-	e = gcry_cipher_open(&h, GCRY_CIPHER_CHACHA20, GCRY_CIPHER_MODE_POLY1305, GCRY_CIPHER_SECURE);
+	r = create_handle(&h, key, nonce);
+	if (r) {
+		return r;
+	}
+
+	r = pad(keydata_raw, keydata);
+	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, r);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}
-	e = gcry_cipher_setkey(h, key, CHACHA20_KEY_LENGTH_BYTES);
-	if (e) {
-		return ERR_NOCRYPTO;
-	}
-	e = gcry_cipher_setiv(h, nonce, CHACHA20_NONCE_LENGTH_BYTES);
-	if (e) {
-		return ERR_NOCRYPTO;
-	}
-	keydata_raw = keydata.c_str();
-	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, keydata.length());
-	if (e) {
-		return ERR_NOCRYPTO;
-	}
-	gcry_cipher_close(h);
+
+	free_handle(&h);
 
 	return ERR_OK;
 }
 
 int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len, const char *key, const char *nonce) {
+	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
 	char keydata_raw[1024];
 
-	e = gcry_cipher_open(&h, GCRY_CIPHER_CHACHA20, GCRY_CIPHER_MODE_POLY1305, GCRY_CIPHER_SECURE);
-	if (e) {
-		return ERR_NOCRYPTO;
+	r = create_handle(&h, key, nonce);
+	if (r) {
+		return r;
 	}
-	e = gcry_cipher_setkey(h, key, CHACHA20_KEY_LENGTH_BYTES);
-	if (e) {
-		return ERR_NOCRYPTO;
-	}
-	e = gcry_cipher_setiv(h, nonce, CHACHA20_NONCE_LENGTH_BYTES);
-	if (e) {
-		return ERR_NOCRYPTO;
-	}
+
 	e = gcry_cipher_decrypt(h, keydata_raw, 1024, ciphertext, ciphertext_len);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}
 	keydata->assign(keydata_raw);
 
-	gcry_cipher_close(h);
+	free_handle(&h);
 
 	return ERR_OK;
 }
