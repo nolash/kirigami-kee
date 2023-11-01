@@ -8,30 +8,22 @@
 #include "gpg.h"
 #include "hex.h"
 
-#define GPG_MIN_VERSION "1.10.2"
-#define CHACHA20_KEY_LENGTH_BYTES 32
-#define CHACHA20_NONCE_LENGTH_BYTES 12
-
-#define ENCRYPT_BLOCKSIZE 1024
 #define BUFLEN 1024 * 1024
 
 const char *gpgVersion = nullptr;
 
-// TODO pad
 
-int pad(char *keydata_raw, std::string keydata) {
+int pad(char *keydata_raw, size_t outsize, std::string keydata) {
 	int l;
-	int d;
-	int m;
+	size_t m;
 
 	strcpy(keydata_raw, (char*)keydata.c_str());
 	l = keydata.length() + 1;
-	d = l / ENCRYPT_BLOCKSIZE;
-	m = ENCRYPT_BLOCKSIZE - (l % ENCRYPT_BLOCKSIZE);
+	m = outsize - (l % outsize);
 	if (m > 0) {
 		gcry_randomize(keydata_raw+l, m, GCRY_STRONG_RANDOM);
 	}
-	return l + m;
+	return 0;
 }
 
 int create_handle(gcry_cipher_hd_t *h, const char *key, const char *nonce) {
@@ -60,15 +52,15 @@ int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const 
 	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
-	char keydata_raw[ENCRYPT_BLOCKSIZE];
+	char keydata_raw[ENCRYPT_PADSIZE];
 
 	r = create_handle(&h, key, nonce);
 	if (r) {
 		return r;
 	}
 
-	r = pad(keydata_raw, keydata);
-	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, r);
+	r = pad(keydata_raw, ciphertext_len, keydata);
+	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ENCRYPT_PADSIZE, (const unsigned char*)keydata_raw, ENCRYPT_PADSIZE);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}
@@ -82,14 +74,14 @@ int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len,
 	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
-	char keydata_raw[1024];
+	char keydata_raw[ENCRYPT_PADSIZE] = {0x00};
 
 	r = create_handle(&h, key, nonce);
 	if (r) {
 		return r;
 	}
 
-	e = gcry_cipher_decrypt(h, keydata_raw, 1024, ciphertext, ciphertext_len);
+	e = gcry_cipher_decrypt(h, keydata_raw, ENCRYPT_PADSIZE, ciphertext, ciphertext_len);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}

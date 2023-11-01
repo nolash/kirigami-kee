@@ -8,7 +8,7 @@ int main() {
 	int r;
 	char key[32];
 	char nonce[12];
-	char cipher[1024]= {0x00};
+	char cipher[ENCRYPT_PADSIZE]= {0x00};
 	std::string plain_r;
 	const char *plain;
 
@@ -19,11 +19,11 @@ int main() {
 		return r;
 	}
 
-	r = encrypt((char*)cipher, 1024, "foo", key, nonce);
+	r = encrypt((char*)cipher, ENCRYPT_PADSIZE, "foo", key, nonce);
 	if (r) {
 		return r;
 	}
-	r = decrypt(&plain_r, (const char*)cipher, 1024, key, nonce);
+	r = decrypt(&plain_r, (const char*)cipher, ENCRYPT_PADSIZE, key, nonce);
 	if (r) {
 		return r;
 	}
