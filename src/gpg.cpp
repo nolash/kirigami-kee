@@ -13,16 +13,27 @@
 const char *gpgVersion = nullptr;
 
 
+size_t get_padsize(size_t insize, size_t blocksize) {
+	size_t c;
+	size_t l;
+	size_t m;
+
+	c = insize + 1;
+	l = c / blocksize;
+	m = c % blocksize;
+	if (m) {
+		l++;
+	}
+	return l * blocksize;
+}
+
 int pad(char *keydata_raw, size_t outsize, std::string keydata) {
 	int l;
 	size_t m;
 
 	strcpy(keydata_raw, (char*)keydata.c_str());
 	l = keydata.length() + 1;
-	m = outsize - (l % outsize);
-	if (m > 0) {
-		gcry_randomize(keydata_raw+l, m, GCRY_STRONG_RANDOM);
-	}
+	gcry_randomize(keydata_raw + l, outsize - l, GCRY_STRONG_RANDOM);
 	return 0;
 }
 
@@ -52,7 +63,7 @@ int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const 
 	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
-	char keydata_raw[ENCRYPT_PADSIZE];
+	char keydata_raw[ciphertext_len];
 
 	r = create_handle(&h, key, nonce);
 	if (r) {
@@ -60,7 +71,7 @@ int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const 
 	}
 
 	r = pad(keydata_raw, ciphertext_len, keydata);
-	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ENCRYPT_PADSIZE, (const unsigned char*)keydata_raw, ENCRYPT_PADSIZE);
+	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, ciphertext_len);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}
@@ -74,14 +85,14 @@ int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len,
 	int r;
 	gcry_cipher_hd_t h;
 	gcry_error_t e;
-	char keydata_raw[ENCRYPT_PADSIZE] = {0x00};
+	char keydata_raw[ciphertext_len] = {0x00};
 
 	r = create_handle(&h, key, nonce);
 	if (r) {
 		return r;
 	}
 
-	e = gcry_cipher_decrypt(h, keydata_raw, ENCRYPT_PADSIZE, ciphertext, ciphertext_len);
+	e = gcry_cipher_decrypt(h, keydata_raw, ciphertext_len, ciphertext, ciphertext_len);
 	if (e) {
 		return ERR_NOCRYPTO;
 	}
@@ -119,6 +130,7 @@ int key_from_path(gcry_sexp_t *key, const char *p) {
 	if (f == NULL) {
 		return ERR_NOKEY;
 	}
+	free(fullpath);
 
 	i = 0;
 	c = 1;
@@ -135,7 +147,7 @@ int key_from_path(gcry_sexp_t *key, const char *p) {
 	return r;
 }
 
-int key_create(gcry_sexp_t *key, const char *p) {
+int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 	FILE *f;
 	const char *sexp_quick = "(genkey(ecc(curve Ed25519)))";
 	char *pv;
@@ -145,6 +157,8 @@ int key_create(gcry_sexp_t *key, const char *p) {
 	gcry_sexp_t in;
 	gcry_error_t e;
 	char v[BUFLEN];
+	char nonce[CHACHA20_NONCE_LENGTH_BYTES];
+
 
 	e = gcry_sexp_new(&in, (const void*)sexp_quick, strlen(sexp_quick), 0);
 	if (e) {
@@ -157,6 +171,13 @@ int key_create(gcry_sexp_t *key, const char *p) {
 		return (int)e;
 	}
 	gcry_sexp_sprint(*key, GCRYSEXP_FMT_CANON, v, BUFLEN);
+
+	// create padding
+	c = get_padsize(strlen(v), ENCRYPT_BLOCKSIZE);
+	char ciphertext[c];
+	gcry_create_nonce(nonce, CHACHA20_NONCE_LENGTH_BYTES);
+	encrypt(ciphertext, c, v, passphrase, nonce);
+
 	f = fopen(p, "w");
 	if (f == NULL) {
 		return ERR_KEYFAIL;
@@ -215,7 +236,7 @@ int GpgStore::check(std::string p) {
 	if (r != ERR_OK) {
 		char pp[1024];
 		sprintf(pp, "%s/key.bin", p.c_str());
-		r = key_create(&k, pp);
+		r = key_create(&k, pp, "abcdef0123456789abcdef0123456789");
 		if (r != ERR_OK) {
 			return r;
 		}
