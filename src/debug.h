@@ -1,3 +1,6 @@
+#ifndef _DEBUG_H
+#define _DEBUG_H
+
 enum debugLevel {
 	DEBUG_CRITICAL,
 	DEBUG_ERROR,
@@ -10,7 +13,11 @@ enum debugLevel {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void debugLog(enum debugLevel level, const char *s);
+
 #ifdef __cplusplus
 }
+#endif
+
 #endif

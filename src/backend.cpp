@@ -2,6 +2,9 @@
 #include <QDebug>
 
 #include "backend.h"
+#include "gpg.h"
+#include "settings.h"
+
 
 Backend::Backend(QObject *parent) : QObject(parent) {
 	m_state = State(0);
@@ -13,6 +16,14 @@ unsigned int Backend::state() {
 		update(42);
 	}
 	return m_state;
+}
+
+int Backend::init(Settings *settings) {
+	int r;
+	
+	r = m_gpg.check(settings->get(SETTINGS_DATA));
+
+	return r;
 }
 
 void Backend::update(int state) {

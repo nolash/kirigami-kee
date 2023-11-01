@@ -7,18 +7,16 @@
 #include <KLocalizedString>
 #include "settings.h"
 #include "backend.h"
-#include "gpg.h"
 
 int main(int argc, char *argv[]) {
 	int r;
 
 	Settings settings = Settings();
-
-	GpgStore gpg;
-	r = gpg.check(settings.get(SettingsType::DATA));
+	r = settings.init();
 	if (r) {
-		return 1;		
+		return r;
 	}
+
 
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication app(argc, argv);
@@ -31,6 +29,10 @@ int main(int argc, char *argv[]) {
 
 	Backend backend;
 	qmlRegisterSingletonInstance<Backend>("org.defalsify.kde.credittracker", 1, 0, "Backend", &backend);
+	r = backend.init(&settings);
+	if (r) {
+		return 1;
+	}
 
 	engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
 	engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

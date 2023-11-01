@@ -2,6 +2,9 @@
 
 #include <QObject>
 
+#include "gpg.h"
+#include "settings.h"
+
 
 enum State {
 	KeyExist = 0x01,
@@ -15,6 +18,7 @@ class Backend : public QObject {
 	public:
 		explicit Backend(QObject *parent = nullptr);
 		unsigned int state();
+		int init(Settings *settings);
 		Q_SIGNAL void stateChanged();
 		Q_DECLARE_FLAGS(States, State)
 		Q_FLAG(States)
@@ -23,7 +27,7 @@ class Backend : public QObject {
 		void update(int);
 
 	private:
+		GpgStore m_gpg;
 		State m_state;
 		bool m_init;
-
 };
