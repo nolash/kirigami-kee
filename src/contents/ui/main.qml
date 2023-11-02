@@ -9,19 +9,26 @@ Kirigami.ApplicationWindow {
 	title: i18nc("@title:window", "Bilateral credit tracker")
 
 	pageStack.initialPage: Kirigami.Page  {
-		Kirigami.FormLayout {
-			anchors.fill: parent
+		Controls.Dialog {
+			id: dialog
+			title: "unlock key"
+			modal: true
+			standardButtons: Controls.Dialog.Ok
+			Kirigami.FormLayout {
+				anchors.fill: parent
+				Controls.TextField {
+					id: passphrase
+					Kirigami.FormData.label: "passphrase:"
+				}
 
-			Controls.TextField {
-				id: passphrase
-				Kirigami.FormData.label: "passphrase:"
-			}
-			Controls.Button {
-				id: passphraseSend
-				text: "unlock"
-				onClicked: Backend.unlock(passphrase.text);
-			}
+//				Controls.Button {
+//					id: passphraseSend
+//					text: "unlock"
+//					onClicked: Backend.unlock(passphrase.text);
+//				}
 
+			}
+			onAccepted: Backend.unlock(passphrase.text);
 		}
 		Controls.Label {
 			id: ddd
@@ -31,6 +38,7 @@ Kirigami.ApplicationWindow {
 				target: Backend
 				onStateChanged: ddd.text = "foo"
 			}
+			Component.onCompleted: dialog.open()
 		}
 	}
 }

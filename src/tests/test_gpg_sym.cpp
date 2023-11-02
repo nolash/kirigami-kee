@@ -97,12 +97,12 @@ int main() {
 	}
 	r = test_crypt(key, nonce);
 	if (r) {
-		r |= (1 << 4);
+		r |= (1 << 8);
 		return r;
 	}
 	r = test_crypt_binary(key, nonce);
 	if (r) {
-		r |= (1 << 5);
+		r |= (1 << 9);
 		return r;
 	}
 	return 0;
