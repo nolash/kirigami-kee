@@ -9,10 +9,24 @@ Kirigami.ApplicationWindow {
 	title: i18nc("@title:window", "Bilateral credit tracker")
 
 	pageStack.initialPage: Kirigami.Page  {
-		Controls.Label {
-			anchors.centerIn: parent
-			text: i18n("Not logged in")
-			Component.onCompleted: Backend.update(42)
-		}	
+		Kirigami.FormLayout {
+			anchors.fill: parent
+
+			Controls.TextField {
+				id: passphrase
+				Kirigami.FormData.label: "passphrase:"
+			}
+			Controls.Button {
+				id: passphraseSend
+				text: "unlock"
+				onClicked: Backend.unlock(passphrase.text);
+			}
+
+		}
+//		Controls.Label {
+//			anchors.centerIn: parent
+//			text: i18n("Not logged in")
+//			Component.onCompleted: Backend.update(42)
+//		}
 	}
 }

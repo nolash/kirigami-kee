@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
 	Backend backend;
 	qmlRegisterSingletonInstance<Backend>("org.defalsify.kde.credittracker", 1, 0, "Backend", &backend);
-	r = backend.init(&settings, "abcdef1234567890abcdef1234567891");
+	r = backend.init(&settings);
 	if (r) {
 		return 1;
 	}
@@ -41,6 +41,5 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	//return app.exec();
-	return 0;
+	return app.exec();
 }

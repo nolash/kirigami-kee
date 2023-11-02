@@ -18,10 +18,14 @@ unsigned int Backend::state() {
 	return m_state;
 }
 
-int Backend::init(Settings *settings, std::string passphrase) {
+int Backend::init(Settings *settings) {
+	m_settings = settings;
+	return 0;
+}
+
+int Backend::unlock(const QString passphrase) {
 	int r;
-	
-	r = m_gpg.check(settings->get(SETTINGS_DATA), passphrase);
+	r = m_gpg.check(m_settings->get(SETTINGS_DATA), passphrase.toStdString());
 	return r;
 }
 

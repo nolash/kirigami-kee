@@ -18,15 +18,17 @@ class Backend : public QObject {
 	public:
 		explicit Backend(QObject *parent = nullptr);
 		unsigned int state();
-		int init(Settings *settings, std::string passphrase);
+		int init(Settings *settings);
 		Q_SIGNAL void stateChanged();
 		Q_DECLARE_FLAGS(States, State)
 		Q_FLAG(States)
 		
 	public slots:
 		void update(int);
+		int unlock(const QString passphrase);
 
 	private:
+		Settings *m_settings;
 		GpgStore m_gpg;
 		State m_state;
 		bool m_init;
