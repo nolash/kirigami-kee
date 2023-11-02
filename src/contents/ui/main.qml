@@ -23,10 +23,14 @@ Kirigami.ApplicationWindow {
 			}
 
 		}
-//		Controls.Label {
-//			anchors.centerIn: parent
-//			text: i18n("Not logged in")
-//			Component.onCompleted: Backend.update(42)
-//		}
+		Controls.Label {
+			id: ddd
+			anchors.centerIn: parent
+			text: i18n("Not logged in")
+			Connections {
+				target: Backend
+				onStateChanged: ddd.text = "foo"
+			}
+		}
 	}
 }

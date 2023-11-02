@@ -13,7 +13,7 @@ Backend::Backend(QObject *parent) : QObject(parent) {
 //State Backend::state() {
 unsigned int Backend::state() {
 	if (!m_init) {
-		update(42);
+		update_r(State(0), State(0));
 	}
 	return m_state;
 }
@@ -26,11 +26,18 @@ int Backend::init(Settings *settings) {
 int Backend::unlock(const QString passphrase) {
 	int r;
 	r = m_gpg.check(m_settings->get(SETTINGS_DATA), passphrase.toStdString());
+	if (!r) {
+		update_r(State(KeyLoaded), State(0));
+	}
 	return r;
 }
 
 void Backend::update(int state) {
-	m_state = State(state);
+	//update_r(instate, outstate);
+}
+
+void Backend::update_r(State instate, State outstate) {
+	m_state = instate;
 	Q_EMIT stateChanged();
 	qDebug() << "hey " << m_state;
 }
