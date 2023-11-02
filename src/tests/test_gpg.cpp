@@ -8,6 +8,6 @@ int main() {
 	GpgStore *gpg;
        
 	gpg = new GpgStore();
-	r = gpg->check(".");
+	r = gpg->check(".", "abcdef1234567890abcdef1234567891");
 	return r;
 }

@@ -9,13 +9,15 @@
 #define ENCRYPT_BLOCKSIZE 4096
 
 int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const char *key, const char *nonce);
+int encryptb (char *ciphertext, size_t ciphertext_len, const char *keydata, size_t keydata_len, const char *key, const char *nonce);
 int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len, const char *key, const char *nonce);
+int decryptb(char *keydata, const char *ciphertext, size_t ciphertext_len, const char *key, const char *nonce);
 size_t get_padsize(size_t insize, size_t blocksize);
 
 class GpgStore {
 
 	public:
-		int check(std::string p);
+		int check(std::string p, std::string passphrase);
 	
 	private:
 		const char *m_version;

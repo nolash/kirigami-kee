@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <errno.h>
 
 #include "err.h"
 #include "debug.h"
@@ -27,14 +28,17 @@ size_t get_padsize(size_t insize, size_t blocksize) {
 	return l * blocksize;
 }
 
-int pad(char *keydata_raw, size_t outsize, std::string keydata) {
-	int l;
-	size_t m;
+void padb(char *data, size_t outsize, size_t insize) {
+	gcry_randomize(data + insize, outsize - insize, GCRY_STRONG_RANDOM);
+}
 
-	strcpy(keydata_raw, (char*)keydata.c_str());
+//TODO: explicit strlen
+void pad(char *keydata_raw, size_t outsize, std::string keydata) {
+	int l;
+
+	strcpy(keydata_raw, keydata.c_str());
 	l = keydata.length() + 1;
-	gcry_randomize(keydata_raw + l, outsize - l, GCRY_STRONG_RANDOM);
-	return 0;
+	padb(keydata_raw, outsize, l);
 }
 
 int create_handle(gcry_cipher_hd_t *h, const char *key, const char *nonce) {
@@ -59,6 +63,28 @@ void free_handle(gcry_cipher_hd_t *h) {
 	gcry_cipher_close(*h);
 }
 
+int encryptb (char *ciphertext, size_t ciphertext_len, const char *keydata, size_t keydata_len, const char *key, const char *nonce) {
+	int r;
+	gcry_cipher_hd_t h;
+	gcry_error_t e;
+	char keydata_raw[ciphertext_len];
+
+	r = create_handle(&h, key, nonce);
+	if (r) {
+		return r;
+	}
+	memcpy(keydata_raw, keydata, keydata_len);
+	padb(keydata_raw, ciphertext_len, keydata_len);
+	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, ciphertext_len);
+	if (e) {
+		return ERR_NOCRYPTO;
+	}
+
+	free_handle(&h);
+
+	return ERR_OK;
+}
+
 int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const char *key, const char *nonce) {
 	int r;
 	gcry_cipher_hd_t h;
@@ -70,7 +96,7 @@ int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const 
 		return r;
 	}
 
-	r = pad(keydata_raw, ciphertext_len, keydata);
+	pad(keydata_raw, ciphertext_len, keydata);
 	e = gcry_cipher_encrypt(h, (unsigned char*)ciphertext, ciphertext_len, (const unsigned char*)keydata_raw, ciphertext_len);
 	if (e) {
 		return ERR_NOCRYPTO;
@@ -79,6 +105,27 @@ int encrypt(char *ciphertext, size_t ciphertext_len, std::string keydata, const 
 	free_handle(&h);
 
 	return ERR_OK;
+}
+
+int decryptb(char *keydata, const char *ciphertext, size_t ciphertext_len, const char *key, const char *nonce) {
+	int r;
+	gcry_cipher_hd_t h;
+	gcry_error_t e;
+
+	r = create_handle(&h, key, nonce);
+	if (r) {
+		return r;
+	}
+
+	e = gcry_cipher_decrypt(h, keydata, ciphertext_len, ciphertext, ciphertext_len);
+	if (e) {
+		return ERR_NOCRYPTO;
+	}
+
+	free_handle(&h);
+
+	return ERR_OK;
+
 }
 
 int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len, const char *key, const char *nonce) {
@@ -103,25 +150,27 @@ int decrypt(std::string *keydata, const char *ciphertext, size_t ciphertext_len,
 	return ERR_OK;
 }
 
-int key_from_data(gcry_sexp_t *key, const char *keydata) {
+int key_from_data(gcry_sexp_t *key, const char *keydata, size_t keydata_len) {
 	gcry_error_t e;
 
-	e = gcry_sexp_new(key, keydata, strlen(keydata), 1);
+	e = gcry_sexp_new(key, keydata, keydata_len, 1);
 	if (e != GPG_ERR_NO_ERROR) {
-		debugLog(DEBUG_DEBUG, keydata);
-		return ERR_NOKEY;
+		//debugLog(DEBUG_DEBUG, keydata);
+		return ERR_KEYFAIL;
 	}
 	return ERR_OK;
 }
 
-int key_from_path(gcry_sexp_t *key, const char *p) {
+int key_from_path(gcry_sexp_t *key, const char *p, const char *passphrase) {
+	int l;
 	int r;
 	char v[BUFLEN];
-	char *pv;
 	size_t c;
 	size_t i;
 	FILE *f;
 	char *fullpath;
+	char nonce[CHACHA20_NONCE_LENGTH_BYTES];
+	void *keydata;
 
 	fullpath = (char*)malloc(strlen(p) + 8);
 	sprintf(fullpath, "%s/%s", p, "key.bin");
@@ -132,27 +181,38 @@ int key_from_path(gcry_sexp_t *key, const char *p) {
 	}
 	free(fullpath);
 
+	c = fread(&l, sizeof(int), 1, f);
+	c = fread(nonce, CHACHA20_NONCE_LENGTH_BYTES, 1, f);
 	i = 0;
 	c = 1;
-	pv = v;
 	while (c != 0 && i < BUFLEN) {
-		c = fread(pv+i, 1, 1024, f);
+		c = fread(v+i, 1024, 1, f);
+		c *= 1024;
 		i += c;
 	}
 	if (i == 0) {
 		return ERR_NOKEY;
 	}
 	fclose(f);
-	r = key_from_data(key, v);
+
+	keydata = malloc(i);
+	r = decryptb((char*)keydata, v, i, passphrase, nonce);
+	if (r) {
+		return ERR_NOKEY;
+	}
+	r = key_from_data(key, (char*)keydata, l);
+	free(keydata);
 	return r;
 }
 
 int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
+	int r;
 	FILE *f;
 	const char *sexp_quick = "(genkey(ecc(curve Ed25519)))";
 	char *pv;
 	int i;
 	int l;
+	int kl;
 	size_t c;
 	gcry_sexp_t in;
 	gcry_error_t e;
@@ -170,24 +230,40 @@ int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 		printf("error gen: %s\n", gcry_strerror(e));
 		return (int)e;
 	}
-	gcry_sexp_sprint(*key, GCRYSEXP_FMT_CANON, v, BUFLEN);
+	kl = gcry_sexp_sprint(*key, GCRYSEXP_FMT_CANON, v, BUFLEN);
 
 	// create padding
-	c = get_padsize(strlen(v), ENCRYPT_BLOCKSIZE);
+	c = get_padsize(kl, ENCRYPT_BLOCKSIZE);
 	char ciphertext[c];
+
 	gcry_create_nonce(nonce, CHACHA20_NONCE_LENGTH_BYTES);
-	encrypt(ciphertext, c, v, passphrase, nonce);
+	r = encryptb(ciphertext, c, v, kl, passphrase, nonce);
+	if (r) {
+		return ERR_KEYFAIL;
+	}
 
 	f = fopen(p, "w");
 	if (f == NULL) {
 		return ERR_KEYFAIL;
 	}
-	c = 1;
+	// TODO rename c
+	l = c;
+	// TODO: endian
+	c = fwrite(&kl, sizeof(int), 1, f);
+	if (c != 1) {
+		fclose(f);
+		return ERR_KEYFAIL;
+	}
+	c = fwrite(nonce, CHACHA20_NONCE_LENGTH_BYTES, 1, f);
+	if (c != 1) {
+		fclose(f);
+		return ERR_KEYFAIL;
+	}
 	i = 0;
-	l = strlen(v);
-	pv = v;
+	c = 1;
 	while (c != 0 && l > 0) {
-		c = fwrite(pv+i, 1024, 1, f);
+		c = fwrite(ciphertext+i, 1024, 1, f);
+		c *= 1024;
 		i += c;
 		l -= c;
 	}
@@ -213,15 +289,17 @@ int sign(gcry_sexp_t *out, gcry_sexp_t *key, const char *v) {
 	return 0;
 }
 
-int GpgStore::check(std::string p) {
+int GpgStore::check(std::string p, std::string passphrase) {
 	int r;
 	const char *v;
 	char d[1024];
 	gcry_sexp_t k;
 	gcry_sexp_t o;
 	unsigned char fingerprint[20] = { 0x00 };
-	unsigned char fingerprint_hex[41] = { 0x00 };
 	size_t fingerprint_len;
+	unsigned char fingerprint_hex[41] = { 0x00 };
+
+	fingerprint_len = 41;
 
 	if (gpgVersion == nullptr) {
 		v = gcry_check_version(GPG_MIN_VERSION);
@@ -232,11 +310,17 @@ int GpgStore::check(std::string p) {
 	gpgVersion = v;
 	sprintf(d, "Using gpg version: %s", gpgVersion);
 	debugLog(DEBUG_INFO, d);
-	r = key_from_path(&k, p.c_str());
+	r = key_from_path(&k, p.c_str(), passphrase.c_str());
+	if (r == ERR_KEYFAIL) {
+		char pp[1024];
+		sprintf(pp, "could not decrypt key in %s/key.bin", p.c_str());
+		debugLog(DEBUG_CRITICAL, pp);
+		return 1;
+	}
 	if (r != ERR_OK) {
 		char pp[1024];
 		sprintf(pp, "%s/key.bin", p.c_str());
-		r = key_create(&k, pp, "abcdef0123456789abcdef0123456789");
+		r = key_create(&k, pp, passphrase.c_str());
 		if (r != ERR_OK) {
 			return r;
 		}
@@ -247,7 +331,7 @@ int GpgStore::check(std::string p) {
 		debugLog(DEBUG_INFO, ppp);
 	} else {
 		gcry_pk_get_keygrip(k, fingerprint);
-		r = bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
+		bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
 		char pp[4096];
 		sprintf(pp, "found key %s in %s", fingerprint_hex, p.c_str());
 		debugLog(DEBUG_INFO, pp);

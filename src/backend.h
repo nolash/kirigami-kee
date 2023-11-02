@@ -18,7 +18,7 @@ class Backend : public QObject {
 	public:
 		explicit Backend(QObject *parent = nullptr);
 		unsigned int state();
-		int init(Settings *settings);
+		int init(Settings *settings, std::string passphrase);
 		Q_SIGNAL void stateChanged();
 		Q_DECLARE_FLAGS(States, State)
 		Q_FLAG(States)
