@@ -26,7 +26,9 @@ int Backend::init(Settings *settings) {
 int Backend::unlock(const QString passphrase) {
 	int r;
 	r = m_gpg.check(m_settings->get(SETTINGS_DATA), passphrase.toStdString());
-	if (!r) {
+	if (r) {
+		Q_EMIT lock();
+	} else {
 		update_r(State(KeyLoaded), State(0));
 	}
 	return r;
@@ -39,5 +41,11 @@ void Backend::update(int state) {
 void Backend::update_r(State instate, State outstate) {
 	m_state = instate;
 	Q_EMIT stateChanged();
-	qDebug() << "hey " << m_state;
+	qDebug() << "statechange " << m_state;
+}
+
+QString Backend::fingerprint() {
+	char *s;
+	s = m_gpg.get_fingerprint();
+	return QString(s);
 }

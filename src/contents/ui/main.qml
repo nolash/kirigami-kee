@@ -36,9 +36,13 @@ Kirigami.ApplicationWindow {
 			text: i18n("Not logged in")
 			Connections {
 				target: Backend
-				onStateChanged: ddd.text = "foo"
+				onStateChanged: ddd.text = Backend.fingerprint
 			}
 			Component.onCompleted: dialog.open()
+		}
+		Connections {
+			target: Backend
+			onLock: dialog.open()
 		}
 	}
 }

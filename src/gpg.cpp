@@ -59,6 +59,7 @@ int create_handle(gcry_cipher_hd_t *h, const char *key, const char *nonce) {
 	return ERR_OK;
 }
 
+
 void free_handle(gcry_cipher_hd_t *h) {
 	gcry_cipher_close(*h);
 }
@@ -289,6 +290,10 @@ int sign(gcry_sexp_t *out, gcry_sexp_t *key, const char *v) {
 	return 0;
 }
 
+char * GpgStore::get_fingerprint() {
+	return m_fingerprint;
+}
+
 int GpgStore::check(std::string p, std::string passphrase) {
 	int r;
 	const char *v;
@@ -297,7 +302,7 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	gcry_sexp_t o;
 	unsigned char fingerprint[20] = { 0x00 };
 	size_t fingerprint_len;
-	unsigned char fingerprint_hex[41] = { 0x00 };
+	//unsigned char fingerprint_hex[41] = { 0x00 };
 
 	fingerprint_len = 41;
 
@@ -325,15 +330,18 @@ int GpgStore::check(std::string p, std::string passphrase) {
 			return r;
 		}
 		gcry_pk_get_keygrip(k, fingerprint);
-		bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
+		//bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
+		bin_to_hex(fingerprint, 20, (unsigned char*)m_fingerprint, &fingerprint_len);
 		char ppp[2048];
-		sprintf(ppp, "created key %s from %s", fingerprint_hex, pp);
+		sprintf(ppp, "created key %s from %s", m_fingerprint, pp);
 		debugLog(DEBUG_INFO, ppp);
 	} else {
 		gcry_pk_get_keygrip(k, fingerprint);
-		bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
+		//bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
+		bin_to_hex(fingerprint, 20, (unsigned char*)m_fingerprint, &fingerprint_len);
 		char pp[4096];
-		sprintf(pp, "found key %s in %s", fingerprint_hex, p.c_str());
+		//sprintf(pp, "found key %s in %s", fingerprint_hex, p.c_str());
+		sprintf(pp, "found key %s in %s", (unsigned char*)m_fingerprint, p.c_str());
 		debugLog(DEBUG_INFO, pp);
 	}
 	r = sign(&o, &k, "foo");

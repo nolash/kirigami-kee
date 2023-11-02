@@ -18,8 +18,11 @@ class GpgStore {
 
 	public:
 		int check(std::string p, std::string passphrase);
+		char *get_fingerprint();
 	
 	private:
 		const char *m_version;
+		char *m_seckey;
+		char m_fingerprint[41];
 };
 #endif
