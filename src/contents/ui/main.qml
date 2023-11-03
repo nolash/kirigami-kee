@@ -42,7 +42,7 @@ Kirigami.ApplicationWindow {
 		}
 		Connections {
 			target: Backend
-			onLock: dialog.open()
+			onKeyLock: dialog.open()
 		}
 	}
 }

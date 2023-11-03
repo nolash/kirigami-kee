@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 	if (r) {
 		return r;
 	}
-
+	settings.set(SETTINGS_LOCKTIME, "2");
 
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication app(argc, argv);

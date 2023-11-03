@@ -3,4 +3,5 @@ enum keeError {
 	ERR_NOCRYPTO,
 	ERR_NOKEY,
 	ERR_KEYFAIL,
+	ERR_DIGESTFAIL,
 };

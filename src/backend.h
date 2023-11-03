@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 
 #include "gpg.h"
 #include "settings.h"
@@ -24,17 +25,19 @@ class Backend : public QObject {
 		int init(Settings *settings);
 		void update_r(State, State);
 		Q_SIGNAL void stateChanged();
-		Q_SIGNAL void lock();
+		Q_SIGNAL void keyLock();
 		Q_DECLARE_FLAGS(States, State)
 		Q_FLAG(States)
-		
+
 	public slots:
 		void update(int);
 		int unlock(const QString passphrase);
+		int lock();
 
 	private:
 		Settings *m_settings;
 		GpgStore m_gpg;
 		State m_state;
 		bool m_init;
+		QTimer *m_timer_lock;
 };

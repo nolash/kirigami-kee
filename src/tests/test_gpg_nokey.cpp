@@ -14,11 +14,11 @@ int main() {
 	d = mkdtemp(s);
        
 	gpg = new GpgStore();
-	r = gpg->check(d, "1234567890abcdef1234567890abcdef");
+	r = gpg->check(d, "1234");
 	if (r) {
 		return r;
 	}
-	r = gpg->check(d, "1234567890abcdef1234567890abcdef");
+	r = gpg->check(d, "1234");
 
 	return r;
 }

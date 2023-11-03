@@ -8,6 +8,7 @@
 
 Backend::Backend(QObject *parent) : QObject(parent) {
 	m_state = State(0);
+	m_timer_lock = 0x0;
 }
 
 //State Backend::state() {
@@ -23,13 +24,34 @@ int Backend::init(Settings *settings) {
 	return 0;
 }
 
+int Backend::lock() {
+	if (m_timer_lock != 0x0 && m_timer_lock->isActive()) {
+		m_timer_lock->stop();
+	}
+	delete m_timer_lock;
+	update_r(State(0), State(KeyLoaded));
+	Q_EMIT keyLock();
+	return 0;
+}
+
 int Backend::unlock(const QString passphrase) {
 	int r;
+	int locktime;
+	std::string locktime_s;
+
 	r = m_gpg.check(m_settings->get(SETTINGS_DATA), passphrase.toStdString());
 	if (r) {
-		Q_EMIT lock();
+		qDebug() << "unlock fail";
+		lock();
 	} else {
 		update_r(State(KeyLoaded), State(0));
+		locktime_s = m_settings->get(SETTINGS_LOCKTIME);
+		if (locktime_s != "0") {
+			m_timer_lock = new QTimer(this);
+			connect(m_timer_lock, &QTimer::timeout, this, &Backend::lock);
+			locktime = std::stoi(locktime_s);
+			m_timer_lock->start(locktime * 1000);
+		}
 	}
 	return r;
 }

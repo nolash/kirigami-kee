@@ -17,12 +17,15 @@ size_t get_padsize(size_t insize, size_t blocksize);
 class GpgStore {
 
 	public:
+		GpgStore();
 		int check(std::string p, std::string passphrase);
 		char *get_fingerprint();
 	
 	private:
+		int digest(char *buf, std::string in);
 		const char *m_version;
 		char *m_seckey;
 		char m_fingerprint[41];
+		unsigned int m_passphrase_digest_len;
 };
 #endif

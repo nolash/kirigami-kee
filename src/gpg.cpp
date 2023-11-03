@@ -290,8 +290,31 @@ int sign(gcry_sexp_t *out, gcry_sexp_t *key, const char *v) {
 	return 0;
 }
 
-char * GpgStore::get_fingerprint() {
+char *GpgStore::get_fingerprint() {
 	return m_fingerprint;
+}
+
+
+int GpgStore::digest(char *buf, std::string in) {
+	gcry_error_t e;
+	gcry_md_hd_t h;
+	unsigned char *v;
+
+	e = gcry_md_open(&h, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
+	if (e) {
+		return ERR_DIGESTFAIL;
+	}
+
+	v = gcry_md_read(h, 0);
+	memcpy(buf, v, m_passphrase_digest_len);
+	gcry_md_write(h, in.c_str(), in.length());
+	gcry_md_close(h);
+	return ERR_OK;
+}
+
+
+GpgStore::GpgStore() {
+	m_passphrase_digest_len = gcry_md_get_algo_dlen(GCRY_MD_SHA256);
 }
 
 int GpgStore::check(std::string p, std::string passphrase) {
@@ -301,10 +324,10 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	gcry_sexp_t k;
 	gcry_sexp_t o;
 	unsigned char fingerprint[20] = { 0x00 };
-	size_t fingerprint_len;
-	//unsigned char fingerprint_hex[41] = { 0x00 };
+	size_t fingerprint_len = 41;
+	char passphrase_hash[m_passphrase_digest_len];
 
-	fingerprint_len = 41;
+	digest(passphrase_hash, passphrase);
 
 	if (gpgVersion == nullptr) {
 		v = gcry_check_version(GPG_MIN_VERSION);
@@ -315,7 +338,8 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	gpgVersion = v;
 	sprintf(d, "Using gpg version: %s", gpgVersion);
 	debugLog(DEBUG_INFO, d);
-	r = key_from_path(&k, p.c_str(), passphrase.c_str());
+	//r = key_from_path(&k, p.c_str(), passphrase.c_str());
+	r = key_from_path(&k, p.c_str(), passphrase_hash);
 	if (r == ERR_KEYFAIL) {
 		char pp[1024];
 		sprintf(pp, "could not decrypt key in %s/key.bin", p.c_str());
@@ -325,7 +349,8 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	if (r != ERR_OK) {
 		char pp[1024];
 		sprintf(pp, "%s/key.bin", p.c_str());
-		r = key_create(&k, pp, passphrase.c_str());
+		//r = key_create(&k, pp, passphrase.c_str());
+		r = key_create(&k, pp, passphrase_hash);
 		if (r != ERR_OK) {
 			return r;
 		}
