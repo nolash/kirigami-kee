@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "backend.h"
 
+
 int main(int argc, char *argv[]) {
 	int r;
 
@@ -28,6 +29,7 @@ int main(int argc, char *argv[]) {
 	QQmlApplicationEngine engine;
 
 	Backend backend;
+	//qmlRegisterType<UnlockDialog>("org.defalsify.kde.credittracker", 1, 0, "UnlockDialog");
 	qmlRegisterSingletonInstance<Backend>("org.defalsify.kde.credittracker", 1, 0, "Backend", &backend);
 	r = backend.init(&settings);
 	if (r) {

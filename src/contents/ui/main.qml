@@ -13,6 +13,7 @@ Kirigami.ApplicationWindow {
 			id: dialog
 			title: "unlock key"
 			modal: true
+			closePolicy: Controls.Popup.NoAutoClose
 			standardButtons: Controls.Dialog.Ok
 			Kirigami.FormLayout {
 				anchors.fill: parent

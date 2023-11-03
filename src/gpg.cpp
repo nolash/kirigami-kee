@@ -11,6 +11,7 @@
 
 #define BUFLEN 1024 * 1024
 
+
 const char *gpgVersion = nullptr;
 
 
@@ -32,7 +33,6 @@ void padb(char *data, size_t outsize, size_t insize) {
 	gcry_randomize(data + insize, outsize - insize, GCRY_STRONG_RANDOM);
 }
 
-//TODO: explicit strlen
 void pad(char *keydata_raw, size_t outsize, std::string keydata) {
 	int l;
 
@@ -233,7 +233,6 @@ int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 	}
 	kl = gcry_sexp_sprint(*key, GCRYSEXP_FMT_CANON, v, BUFLEN);
 
-	// create padding
 	c = get_padsize(kl, ENCRYPT_BLOCKSIZE);
 	char ciphertext[c];
 
@@ -275,7 +274,6 @@ int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 
 int sign(gcry_sexp_t *out, gcry_sexp_t *key, const char *v) {
 	gcry_error_t e;
-	//size_t l;
 	gcry_sexp_t data;
 	char in[BUFLEN];
 
@@ -338,7 +336,6 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	gpgVersion = v;
 	sprintf(d, "Using gpg version: %s", gpgVersion);
 	debugLog(DEBUG_INFO, d);
-	//r = key_from_path(&k, p.c_str(), passphrase.c_str());
 	r = key_from_path(&k, p.c_str(), passphrase_hash);
 	if (r == ERR_KEYFAIL) {
 		char pp[1024];
@@ -349,23 +346,19 @@ int GpgStore::check(std::string p, std::string passphrase) {
 	if (r != ERR_OK) {
 		char pp[1024];
 		sprintf(pp, "%s/key.bin", p.c_str());
-		//r = key_create(&k, pp, passphrase.c_str());
 		r = key_create(&k, pp, passphrase_hash);
 		if (r != ERR_OK) {
 			return r;
 		}
 		gcry_pk_get_keygrip(k, fingerprint);
-		//bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
 		bin_to_hex(fingerprint, 20, (unsigned char*)m_fingerprint, &fingerprint_len);
 		char ppp[2048];
 		sprintf(ppp, "created key %s from %s", m_fingerprint, pp);
 		debugLog(DEBUG_INFO, ppp);
 	} else {
 		gcry_pk_get_keygrip(k, fingerprint);
-		//bin_to_hex(fingerprint, 20, fingerprint_hex, &fingerprint_len);
 		bin_to_hex(fingerprint, 20, (unsigned char*)m_fingerprint, &fingerprint_len);
 		char pp[4096];
-		//sprintf(pp, "found key %s in %s", fingerprint_hex, p.c_str());
 		sprintf(pp, "found key %s in %s", (unsigned char*)m_fingerprint, p.c_str());
 		debugLog(DEBUG_INFO, pp);
 	}

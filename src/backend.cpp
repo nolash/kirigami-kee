@@ -11,7 +11,6 @@ Backend::Backend(QObject *parent) : QObject(parent) {
 	m_timer_lock = 0x0;
 }
 
-//State Backend::state() {
 unsigned int Backend::state() {
 	if (!m_init) {
 		update_r(State(0), State(0));
