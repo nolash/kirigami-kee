@@ -38,16 +38,22 @@ Kirigami.ApplicationWindow {
 		Connections {
 			target: Backend
 			onKeyLock: dialog.open()
-			onStateChanged: {splashlabel.text = Backend.fingerprint; passphrase.text = ""; pageStack.push(overview);}
-
+			onStateChanged: {if (Backend.fingerprint != "") { splashlabel.text = Backend.fingerprint; passphrase.text = ""; pageStack.push(overview);}}
 		}
 	}
 
 	Kirigami.ScrollablePage {
 		id: overview
-		title: "credits"
+		visible: false
+		title: "credits for " + Backend.fingerprint
 		anchors.fill: parent
+		Kirigami.CardsListView {
+			id: creditList
+			model: creditListModel
+			delegate: creditListDelegate
+		}
 	}
+
 
 	Controls.Dialog {
 		id: dialog
@@ -74,4 +80,56 @@ Kirigami.ApplicationWindow {
 		onAccepted: Backend.unlock(passphrase.text);
 		onRejected: Qt.quit()
 	}
+	
+	ListModel {
+		id: creditListModel
+		ListElement {
+			name: "foo"
+			description: "bar baz"
+		}
+	}
+
+	Component {
+		id: creditListDelegate
+		Kirigami.AbstractCard {
+			contentItem: Item {
+				implicitWidth: creditListDelegateLayout.implicitWidth
+				implicitHeight: creditListDelegateLayout.implicitHeight
+				GridLayout {
+					id: creditListDelegateLayout
+					anchors {
+						left: parent.left
+						top: parent.top
+						right: parent.right
+					}
+					columns: overview.wideScreen ? 4 : 2
+
+					Kirigami.Heading {
+						Layout.fillHeight: true
+						level: 1
+						text: "head"
+					}
+
+					ColumnLayout {
+						Kirigami.Heading {
+							Layout.fillWidth: true
+							level: 2
+							text: name
+						}
+						Kirigami.Separator {
+							Layout.fillWidth: true
+
+						}
+						Controls.Label {
+							Layout.fillWidth: true
+							text: description
+						}
+					}
+				}
+			}
+		}
+
+	}
 }
+
+

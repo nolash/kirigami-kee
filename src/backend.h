@@ -16,7 +16,7 @@ enum State {
 class Backend : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(unsigned int state READ state WRITE update NOTIFY stateChanged)
-	Q_PROPERTY(QString fingerprint READ fingerprint)
+	Q_PROPERTY(QString fingerprint READ fingerprint NOTIFY stateChanged)
 
 	public:
 		explicit Backend(QObject *parent = nullptr);
