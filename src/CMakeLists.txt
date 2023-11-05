@@ -1,8 +1,9 @@
 add_library(utils hex.c)
 set_property(TARGET utils PROPERTY C_VISIBILITY_PRESET visible)
 set_property(TARGET utils PROPERTY VISIBILITY_INLINES_HIDDEN OFF)
-add_executable(credittracker main.cpp backend.cpp settings.cpp gpg.cpp debug.cpp credit.cpp resources.qrc)
+add_executable(credittracker main.cpp backend.cpp settings.cpp gpg.cpp debug.cpp credit.cpp export.cpp resources.qrc)
 target_link_libraries(credittracker Qt5::Quick Qt5::Qml Qt5::Gui Qt5::QuickControls2 Qt5::Widgets KF5::Kirigami2 KF5::I18n gcrypt)
 target_link_libraries(credittracker utils)
+target_link_libraries(credittracker varint)
 
 add_subdirectory(tests)

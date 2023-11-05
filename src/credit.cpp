@@ -1,6 +1,12 @@
-#include "credit.h"
+#include <stdint.h>
+#include <varint.h>
+#include <QByteArray>
 
-Credit::Credit(const QString &name, const QString &description) 
+#include "credit.h"
+#include "export.h"
+
+
+Credit::Credit(const QString &name, const QString &description)
 	: m_name(name), m_description(description) {
 }
 
@@ -10,6 +16,24 @@ QString Credit::name() const {
 
 QString Credit::description() const {
 	return m_description;
+}
+
+int Credit::serialize() {
+	Export *ex;
+	char *s;
+	QByteArray b;
+
+	ex = new Export(2);
+
+	b = m_name.toUtf8();
+	s = b.data();
+	ex->addItem(s, b.size());
+
+	b = m_description.toUtf8();
+	s = b.data();
+	ex->addItem(s, b.size());
+
+	return 0;
 }
 
 
