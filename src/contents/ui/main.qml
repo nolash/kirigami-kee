@@ -48,8 +48,10 @@ Kirigami.ApplicationWindow {
 		title: "credits for " + Backend.fingerprint
 		anchors.fill: parent
 		Kirigami.CardsListView {
+			model: creditModel
 			id: creditList
-			model: creditListModel
+			//model: creditListModel
+			//model: List
 			delegate: creditListDelegate
 		}
 	}
@@ -81,13 +83,13 @@ Kirigami.ApplicationWindow {
 		onRejected: Qt.quit()
 	}
 	
-	ListModel {
-		id: creditListModel
-		ListElement {
-			name: "foo"
-			description: "bar baz"
-		}
-	}
+	//ListModel {
+		//id: creditListModel
+		//ListElement {
+		//	name: "foo"
+		//	description: "bar baz"
+		//}
+	//}
 
 	Component {
 		id: creditListDelegate

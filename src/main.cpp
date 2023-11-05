@@ -3,10 +3,12 @@
 #include <QtQml>
 #include <QUrl>
 #include <QDebug>
+#include <QtQuick/qquickview.h>
 #include <KLocalizedContext>
 #include <KLocalizedString>
 #include "settings.h"
 #include "backend.h"
+#include "credit.h"
 
 
 int main(int argc, char *argv[]) {
@@ -29,7 +31,10 @@ int main(int argc, char *argv[]) {
 	QQmlApplicationEngine engine;
 
 	Backend backend;
-	//qmlRegisterType<UnlockDialog>("org.defalsify.kde.credittracker", 1, 0, "UnlockDialog");
+	CreditListModel credit_model;
+	const Credit &item = Credit("foo", "bar");
+	credit_model.addItem(item);
+	//qmlRegisterType<List>("org.defalsify.kde.credittracker", 1, 0, "List");
 	qmlRegisterSingletonInstance<Backend>("org.defalsify.kde.credittracker", 1, 0, "Backend", &backend);
 	r = backend.init(&settings);
 	if (r) {
@@ -37,6 +42,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+	engine.rootContext()->setContextProperty(QStringLiteral("creditModel"), &credit_model);
 	engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
 	if (engine.rootObjects().isEmpty()) {
