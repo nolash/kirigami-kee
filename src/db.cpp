@@ -6,6 +6,7 @@
 
 #include "db.h"
 #include "err.h"
+#include "endian.h"
 
 
 Db::Db(std::string conn) {
@@ -36,6 +37,7 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	unsigned char *rv;
 	char kv;
 	struct timespec ts;
+	char rts[sizeof(struct timespec)];
 	gcry_error_t e;
 	gcry_md_hd_t h;
 	MDB_txn *tx;
@@ -49,6 +51,11 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	if (r) {
 		return 1;
 	}
+	memcpy(rts, &ts.tv_sec, sizeof(ts.tv_sec));
+	memcpy(rts + sizeof(ts.tv_sec), &ts.tv_nsec, sizeof(ts.tv_nsec));
+	to_endian(0, sizeof(ts.tv_sec), rts);
+	to_endian(0, sizeof(ts.tv_nsec), rts + sizeof(ts.tv_sec));
+
 	e = gcry_md_open(&h, GCRY_MD_SHA256, 0);
 	if (e) {
 		return ERR_DIGESTFAIL;
@@ -57,7 +64,7 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	rv = gcry_md_read(h, 0);
 	kv = (char)skey;
 	memcpy(buf, &kv, 1);
-	memcpy(buf + 1, &ts, sizeof(struct timespec));
+	memcpy(buf + 1, rts, sizeof(struct timespec));
 	memcpy(buf + 1 + sizeof(struct timespec), rv, 32);
 	gcry_md_close(h);
 
