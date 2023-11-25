@@ -303,13 +303,12 @@ int GpgStore::digest(char *buf, std::string in) {
 		return ERR_DIGESTFAIL;
 	}
 
+	gcry_md_write(h, in.c_str(), in.length());
 	v = gcry_md_read(h, 0);
 	memcpy(buf, v, m_passphrase_digest_len);
-	gcry_md_write(h, in.c_str(), in.length());
 	gcry_md_close(h);
 	return ERR_OK;
 }
-
 
 GpgStore::GpgStore() {
 	m_passphrase_digest_len = gcry_md_get_algo_dlen(GCRY_MD_SHA256);

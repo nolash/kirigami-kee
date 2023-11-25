@@ -13,7 +13,7 @@ Export::Export(size_t count)
 	m_lenlens.reserve(count);
 	m_data.reserve(count);
 	m_datalens.reserve(count);
-	m_lens = (char*)malloc(10*count);
+	m_lens = (char*)malloc(10*count); // 10 is max varint
 }
 
 Export::~Export() {
