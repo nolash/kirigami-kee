@@ -10,6 +10,10 @@ Credit::Credit(const QString &name, const QString &description)
 	: m_name(name), m_description(description) {
 }
 
+Credit::Credit(Import *im) {
+	this->deserialize(im);
+}
+
 QString Credit::name() const {
 	return m_name;
 }
@@ -18,12 +22,9 @@ QString Credit::description() const {
 	return m_description;
 }
 
-int Credit::serialize() {
-	Export *ex;
+int Credit::serialize(Export *ex) {
 	char *s;
 	QByteArray b;
-
-	ex = new Export(2);
 
 	b = m_name.toUtf8();
 	s = b.data();
@@ -35,6 +36,24 @@ int Credit::serialize() {
 
 	return 0;
 }
+
+int Credit::deserialize(Import *im) {
+	int r;
+	char buf[1024]; // TODO: settable limit
+	
+	r = im->read(buf, 1024);	
+	if (!r) {
+		return 1;
+	}
+	m_name = QString::fromUtf8(buf, r);
+
+	r = im->read(buf, 1024);	
+	if (!r) {
+		return 1;
+	}
+	m_description = QString::fromUtf8(buf, r);
+	return 0;
+}	
 
 
 CreditListModel::CreditListModel(QObject *parent) : QAbstractListModel(parent) {

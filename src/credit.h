@@ -1,14 +1,18 @@
 #include <QAbstractListModel>
 
+#include "export.h"
+
 // based on https://code.qt.io/cgit/qt/qtdeclarative.git/tree/examples/quick/models/abstractitemmodel?h=5.15
 
 class Credit {
 
 public:
+	Credit(Import *im);
 	Credit(const QString &name, const QString &description);
 	QString name() const;
 	QString description() const;
-	int serialize();
+	int serialize(Export *ex);
+	int deserialize(Import *im);
 private:
 	QString m_name;
 	QString m_description;

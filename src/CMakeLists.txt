@@ -1,5 +1,5 @@
 add_library(utils hex.c)
-set_property(TARGET utils PROPERTY C_VISIBILITY_PRESET visible)
+set_property(TARGET utils PROPERTY C_VISIBILITY_PRESET default)
 set_property(TARGET utils PROPERTY VISIBILITY_INLINES_HIDDEN OFF)
 add_executable(credittracker main.cpp backend.cpp settings.cpp gpg.cpp debug.cpp credit.cpp export.cpp db.cpp endian.c resources.qrc)
 target_compile_options(credittracker PUBLIC -fexceptions)

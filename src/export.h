@@ -1,3 +1,6 @@
+#ifndef _EXPORT_H
+#define _EXPORT_H
+
 #include <stdint.h>
 #include <vector>
 
@@ -28,3 +31,5 @@ private:
 	size_t m_size;
 	unsigned int m_crsr;
 };
+
+#endif // _EXPORT_H

@@ -80,5 +80,5 @@ int Import::read(char *out, size_t out_len) {
 	memcpy(out, m_data + m_crsr, (size_t)l);
 	m_crsr += l;
 
-	return r;
+	return l;
 }
