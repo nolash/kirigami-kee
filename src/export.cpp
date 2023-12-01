@@ -24,6 +24,10 @@ int Export::addItem(char *in, size_t in_len) {
 	int r;
 	char b[10];
 
+	if (in_len == 0) {
+		return 1;
+	}
+
 	r = 0;
 	r += varint_write_u(b, in_len);
 	memcpy(m_lens+(m_count*10), b, 10);
@@ -64,6 +68,11 @@ int Export::write(char *out, size_t out_len) {
 Import::Import(const char *in, size_t in_len) 
 	: m_data((char*)in), m_size(in_len) {
 	m_crsr = 0;
+	m_eof = 0;
+}
+
+bool Import::done() {
+	return m_eof;
 }
 
 int Import::read(char *out, size_t out_len) {
@@ -71,6 +80,7 @@ int Import::read(char *out, size_t out_len) {
 	uint64_t l;
 
 	if (m_size - m_crsr <= 0) {
+		m_eof = 1;
 		return 0;
 	}
 

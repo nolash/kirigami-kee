@@ -41,7 +41,7 @@ int Credit::deserialize(Import *im) {
 	int r;
 	char buf[1024]; // TODO: settable limit
 	
-	r = im->read(buf, 1024);	
+	r = im->read(buf, 1024);
 	if (!r) {
 		return 1;
 	}

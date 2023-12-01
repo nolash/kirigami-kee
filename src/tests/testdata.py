@@ -25,8 +25,10 @@ dbi = env.open_db()
 
 keys = []
 vals = [
-    b"\x03foo\x04bar",
+    b"\x03foo\x03bar",
     b"\x05xyzzy\x05plugh",
+    b"\x04inky\x05pinky",
+    b"\x06blinky\x05clyde",
         ]
 
 for i in range(len(vals)):

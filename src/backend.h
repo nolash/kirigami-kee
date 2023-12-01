@@ -6,6 +6,7 @@
 
 #include "gpg.h"
 #include "settings.h"
+#include "db.h"
 
 
 enum State {
@@ -41,6 +42,7 @@ class Backend : public QObject {
 		State m_state;
 		bool m_init;
 		QTimer *m_timer_lock;
+		Db *m_db;
 };
 
 //class CreditLine : public QObject {

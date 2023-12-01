@@ -10,7 +10,7 @@
 
 
 Db::Db(std::string conn) {
-	m_connstr = conn.c_str();
+	m_connstr = conn;
 	m_current_key = DbNoKey;
 	m_tx = NULL;
 	m_env = NULL;
@@ -25,7 +25,7 @@ int Db::connect() {
 	if (r) {
 		return 1;
 	}
-	r = mdb_env_open(m_env, m_connstr, MDB_NOLOCK, S_IRWXU);
+	r = mdb_env_open(m_env, m_connstr.c_str(), MDB_NOLOCK, S_IRWXU);
 	if (r) {
 		return 1;
 	}

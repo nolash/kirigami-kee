@@ -19,8 +19,9 @@ unsigned int Backend::state() {
 }
 
 int Backend::init(Settings *settings) {
+	int r;
 	m_settings = settings;
-	return 0;
+ 	return 0;
 }
 
 int Backend::lock() {

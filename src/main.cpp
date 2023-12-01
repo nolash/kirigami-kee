@@ -9,10 +9,21 @@
 #include "settings.h"
 #include "backend.h"
 #include "credit.h"
+#include "db.h"
 
 
 int main(int argc, char *argv[]) {
 	int r;
+	int c;
+	char buf[1024];
+	char *k;
+	size_t kl;
+	char *v;
+	size_t vl;
+	Import *im;
+	
+	std::string db_path;
+	Db *db;
 
 	Settings settings = Settings();
 	r = settings.init();
@@ -31,9 +42,35 @@ int main(int argc, char *argv[]) {
 	QQmlApplicationEngine engine;
 
 	Backend backend;
+
+	db_path = settings.get(SETTINGS_DATA);
+	db = new Db(db_path);
+	r = db->connect();
+	if (r) {
+		return 1;
+	}
+
 	CreditListModel credit_model;
-	const Credit &item = Credit("foo", "bar");
-	credit_model.addItem(item);
+
+	c = 0;
+	while (1) {
+		r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
+		if (r) {
+			break;
+		}
+		memcpy(buf+c, v, vl);
+		c += vl;
+	}
+
+	im = new Import(buf, c); // improve load buffered direct from file
+	while (1) {
+		const Credit &item = Credit(im);
+		if (im->done()) {
+			break;
+		}
+		credit_model.addItem(item);
+	}
+
 	//qmlRegisterType<List>("org.defalsify.kde.credittracker", 1, 0, "List");
 	qmlRegisterSingletonInstance<Backend>("org.defalsify.kde.credittracker", 1, 0, "Backend", &backend);
 	r = backend.init(&settings);

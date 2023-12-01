@@ -26,10 +26,12 @@ class Import {
 public:
 	Import(const char *in, size_t in_len);
 	int read(char *out, size_t out_len);
+	bool done();
 private:
 	char *m_data;
 	size_t m_size;
 	unsigned int m_crsr;
+	bool m_eof;
 };
 
 #endif // _EXPORT_H
