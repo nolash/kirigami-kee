@@ -57,6 +57,29 @@ int test_import() {
 	return 0;
 }
 
+int test_import_first() {
+	int r;
+	int l;
+	FILE *f;
+	//Import *im;
+	//Credit *cr;
+	char buf[1024];
+
+	f = fopen("./credit.bin", "r");
+	if (f == NULL) {
+		return 1;
+	}
+	l = fread(buf, 1, 1024, f);
+	if (l == 0) {
+		return 1;
+	}
+	r = fclose(f);
+	if (r) {
+		return 1;
+	}
+	return 0;
+}
+
 int main() {
 	int r;
 

@@ -11,6 +11,11 @@
 
 Db::Db(std::string conn) {
 	m_connstr = conn.c_str();
+	m_current_key = DbNoKey;
+	m_tx = NULL;
+	m_env = NULL;
+	m_crsr = NULL;
+	m_started = 0;
 }
 
 int Db::connect() {
@@ -24,6 +29,8 @@ int Db::connect() {
 	if (r) {
 		return 1;
 	}
+
+
 	return 0;
 }
 
@@ -92,6 +99,54 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	if (r) {
 		return 1;
 	}
+
+	return 0;
+}
+
+int Db::next (enum DbKey skey, char **key, size_t *key_len, char **value, size_t *value_len) {
+	int r;
+	char start;
+	MDB_val k;
+	MDB_val v;
+
+	if (skey != m_current_key) {
+		if (m_started) {
+			mdb_cursor_close(m_crsr);
+			mdb_dbi_close(m_env, m_dbi);
+			mdb_txn_abort(m_tx);
+		}
+
+
+		r = mdb_txn_begin(m_env, NULL, MDB_RDONLY, &m_tx);
+		if (r) {
+			return 1;
+		}
+		r = mdb_dbi_open(m_tx, NULL, 0, &m_dbi);
+		if (r) {
+			return 1;
+		}
+		
+		r = mdb_cursor_open(m_tx, m_dbi, &m_crsr);	
+		if (r) {
+			return 1;
+		}
+		m_current_key = skey;
+
+		start = (char)skey;
+		k.mv_data = &start;
+		k.mv_size = 1;
+	}
+
+
+	r = mdb_cursor_get(m_crsr, &k, &v, MDB_NEXT);
+	if (r) {
+		return 1;
+	}
+
+	*key = (char*)k.mv_data;
+	*key_len = k.mv_size;
+	*value = (char*)v.mv_data;
+	*value_len = v.mv_size;
 
 	return 0;
 }
