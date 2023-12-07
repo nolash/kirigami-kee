@@ -27,7 +27,6 @@ Kirigami.ApplicationWindow {
 		]
 	}
 
-
 	pageStack.initialPage: Kirigami.Page  {
 		Controls.Label {
 			id: splashlabel
@@ -37,10 +36,19 @@ Kirigami.ApplicationWindow {
 		}
 		Connections {
 			target: Backend
-			onKeyLock: dialog.open()
-			onStateChanged: {if (Backend.fingerprint != "") { splashlabel.text = Backend.fingerprint; passphrase.text = ""; pageStack.push(overview);}}
+			function onKeyLock() {
+				dialog.open();
+			}
+			function onStateChanged() {
+				if (Backend.fingerprint != "") {
+					splashlabel.text = Backend.fingerprint;
+					passphrase.text = "";
+					pageStack.push(overview);
+				}
+			}
 		}
 	}
+
 
 	Kirigami.ScrollablePage {
 		id: overview
@@ -54,6 +62,20 @@ Kirigami.ApplicationWindow {
 			//model: List
 			delegate: creditListDelegate
 		}
+	}
+
+	Kirigami.ScrollablePage {
+		id: creditItem
+		Controls.Label {
+			id: creditItemTitle
+			text: ""
+		}
+		Connections {
+			target: pageStack
+			function onPagePushed() {
+				console.log("bar");
+			}
+		}	
 	}
 
 
@@ -125,6 +147,14 @@ Kirigami.ApplicationWindow {
 						Controls.Label {
 							Layout.fillWidth: true
 							text: description
+						}
+						Controls.Button {
+							text: "view"
+							onClicked: {
+								console.log("foo");
+								creditItemTitle.text = name
+								pageStack.push(creditItem);
+							}
 						}
 					}
 				}
