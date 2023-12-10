@@ -8,7 +8,16 @@
 int initialized = 0;
 
 
-int qr_img_decode(Image *img, char *out, size_t out_len, size_t *width, size_t *height) {
+static ImageInfo *qr_img_init(ExceptionInfo *img_ex) {
+	if (!initialized) {
+		InitializeMagick(NULL);
+		initialized = 1;
+	}
+	GetExceptionInfo(img_ex);
+	return CloneImageInfo(NULL);
+}
+
+static int qr_img_decode(Image *img, char *out, size_t out_len, size_t *width, size_t *height) {
 	int i;	
 	size_t l;
 	ExceptionInfo img_ex;
@@ -40,18 +49,12 @@ int qr_img_decode(Image *img, char *out, size_t out_len, size_t *width, size_t *
 
 }
 
-int qr_file_decode(const char *filename, char *out, size_t out_len, size_t *width, size_t *height) {
+int qr_decode_file(const char *filename, char *out, size_t out_len, size_t *width, size_t *height) {
 	Image *img;
 	ImageInfo *img_info;
 	ExceptionInfo img_ex;
 
-	if (!initialized) {
-		InitializeMagick(NULL);
-		initialized = 1;
-	}
-
-	img_info = CloneImageInfo(NULL);
-	GetExceptionInfo(&img_ex);
+	img_info = qr_img_init(&img_ex);
 	strcpy(img_info->filename, filename);
 	img = ReadImage(img_info, &img_ex);
 	if (img == NULL) {
@@ -61,7 +64,7 @@ int qr_file_decode(const char *filename, char *out, size_t out_len, size_t *widt
 }
 
 
-int qr_data_decode(char *in, size_t in_len, char *out, size_t out_len, size_t *width, size_t *height) {
+int qr_decode_data(char *in, size_t in_len, char *out, size_t out_len, size_t *width, size_t *height) {
 	int i;	
 	size_t l;
 	Image *img;
@@ -69,15 +72,7 @@ int qr_data_decode(char *in, size_t in_len, char *out, size_t out_len, size_t *w
 	ExceptionInfo img_ex;
 	const PixelPacket *pp;
 
-	if (!initialized) {
-		InitializeMagick(NULL);
-		initialized = 1;
-	}
-
-	img_info = CloneImageInfo(NULL);
-	GetExceptionInfo(&img_ex);
-	//strcpy(img_info->filename, "foo.png");
-	//img = ReadImage(img_info, &img_ex);
+	img_info = qr_img_init(&img_ex);
 	img = BlobToImage(img_info, in, in_len, &img_ex);
 	if (img == NULL) {
 		return 1;

@@ -15,7 +15,7 @@ int test_qr_img_file_in() {
 	const zbar::zbar_symbol_t *zsym;
 	const char *zdata;
 
-	r = qr_file_decode("qr.png", out, 512 * 1024, &w, &h);
+	r = qr_decode_file("qr.png", out, 512 * 1024, &w, &h);
 	if (r) {
 		return 1;
 	}
@@ -73,7 +73,7 @@ int test_qr_img_data_in() {
 	}
 	fclose(f);
 
-	r = qr_data_decode(in, (size_t)l, out, 512 * 1024, &w, &h);
+	r = qr_decode_data(in, (size_t)l, out, 512 * 1024, &w, &h);
 	if (r) {
 		return 1;
 	}
