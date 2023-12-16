@@ -9,7 +9,7 @@ int test_qr_img_file_in() {
 	int r;
 	char out[512 * 1024];
 
-	r = qr_decode_file("qr.png", out, 512 * 1024);
+	r = qr_decode_pixels_file("qr.png", out, 512 * 1024);
 	if (r) {
 		return 1;
 	}
@@ -42,7 +42,7 @@ int test_qr_img_data_in() {
 	}
 	fclose(f);
 
-	r = qr_decode_data(in, (size_t)l, out, 512 * 1024);
+	r = qr_decode_pixels(in, (size_t)l, out, 512 * 1024);
 	if (r) {
 		return 1;
 	}

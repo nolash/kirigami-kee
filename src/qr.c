@@ -86,7 +86,7 @@ static int qr_img_decode(Image *img, char *out, size_t out_len) {
 	return r;
 }
 
-int qr_decode_file(const char *filename, char *out, size_t out_len) {
+int qr_decode_pixels_file(const char *filename, char *out, size_t out_len) {
 	Image *img;
 	ImageInfo *img_info;
 	ExceptionInfo img_ex;
@@ -101,7 +101,7 @@ int qr_decode_file(const char *filename, char *out, size_t out_len) {
 }
 
 
-int qr_decode_data(char *in, size_t in_len, char *out, size_t out_len) {
+int qr_decode_pixels(char *in, size_t in_len, char *out, size_t out_len) {
 	Image *img;
 	ImageInfo *img_info;
 	ExceptionInfo img_ex;

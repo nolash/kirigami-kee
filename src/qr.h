@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 int qr_encode(char *in, char *out, size_t *out_len);
-int qr_decode_data(char *in, size_t in_len, char *out, size_t out_len);
-int qr_decode_file(const char *filename, char *out, size_t out_len);
+int qr_decode_pixels(char *in, size_t in_len, char *out, size_t out_len);
+int qr_decode_pixels_file(const char *filename, char *out, size_t out_len);
 
 #ifdef __cplusplus
 }
