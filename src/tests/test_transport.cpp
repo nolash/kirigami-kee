@@ -8,39 +8,14 @@
 int test_qr_img_file_in() {
 	int r;
 	char out[512 * 1024];
-	size_t w;
-	size_t h;
-	zbar::zbar_image_t *zimg;
-	zbar::zbar_image_scanner_t *zscan;
-	const zbar::zbar_symbol_t *zsym;
-	const char *zdata;
 
-	r = qr_decode_file("qr.png", out, 512 * 1024, &w, &h);
+	r = qr_decode_file("qr.png", out, 512 * 1024);
 	if (r) {
 		return 1;
 	}
-
-	zimg = zbar::zbar_image_create();
-	if (zimg == NULL) {
+	if (strcmp(out, "eNpLy89PSixKSqxiAAAWMgO3")) {
 		return 1;
 	}
-	zbar::zbar_image_set_data(zimg, out, r, NULL);
-	zbar::zbar_image_set_format(zimg, zbar_fourcc('Y', '8', '0', '0'));
-	zbar::zbar_image_set_size(zimg, w, h);
-	zscan = zbar::zbar_image_scanner_create();
-	zbar_image_scanner_set_config(zscan, zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
-	r = zbar_scan_image(zscan, zimg);
-	if (r <= 0) {
-		return 1;
-	}
-	
-	zsym = zbar_image_first_symbol(zimg);
-	zdata = zbar_symbol_get_data(zsym);
-	if (strcmp(zdata, "eNpLy89PSixKSqxiAAAWMgO3")) {
-		return 1;
-	}
-
-	zbar::zbar_image_destroy(zimg);
 
 	return 0;
 }
@@ -51,12 +26,6 @@ int test_qr_img_data_in() {
 	FILE *f;
 	char in[512 * 1024];
 	char out[512 * 1024];
-	size_t w;
-	size_t h;
-	zbar::zbar_image_t *zimg;
-	zbar::zbar_image_scanner_t *zscan;
-	const zbar::zbar_symbol_t *zsym;
-	const char *zdata;
 
 	f = fopen("qr.png", "rb");
 	if (f == NULL) {
@@ -73,43 +42,26 @@ int test_qr_img_data_in() {
 	}
 	fclose(f);
 
-	r = qr_decode_data(in, (size_t)l, out, 512 * 1024, &w, &h);
+	r = qr_decode_data(in, (size_t)l, out, 512 * 1024);
 	if (r) {
 		return 1;
 	}
-
-	zimg = zbar::zbar_image_create();
-	if (zimg == NULL) {
+	if (strcmp(out, "eNpLy89PSixKSqxiAAAWMgO3")) {
 		return 1;
 	}
-	zbar::zbar_image_set_data(zimg, out, r, NULL);
-	zbar::zbar_image_set_format(zimg, zbar_fourcc('Y', '8', '0', '0'));
-	zbar::zbar_image_set_size(zimg, w, h);
-	zscan = zbar::zbar_image_scanner_create();
-	zbar_image_scanner_set_config(zscan, zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
-	r = zbar_scan_image(zscan, zimg);
-	if (r <= 0) {
-		return 1;
-	}
-	
-	zsym = zbar_image_first_symbol(zimg);
-	zdata = zbar_symbol_get_data(zsym);
-	if (strcmp(zdata, "eNpLy89PSixKSqxiAAAWMgO3")) {
-		return 1;
-	}
-
-	zbar::zbar_image_destroy(zimg);
 
 	return 0;
 }
 
 int test_qr_out() {
 	int r;
+	size_t l;
 	size_t c;
 	char in[] = "foobarbaz";
 
+	l = 128*1024;
 	c = 1024;
-	char out[1024];
+	char out[128*1024];
 	char cmp[1024];
 
 	r = pack(in, strlen(in) + 1, out, &c);
@@ -117,7 +69,7 @@ int test_qr_out() {
 		return 1;
 	}
 
-	r = qr_encode(out, cmp, 1024);
+	r = qr_encode(out, cmp, &l);
 	if (r) {
 		return r;
 	}

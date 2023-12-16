@@ -7,13 +7,12 @@
 extern "C" {
 #endif
 
-int qr_encode(char *in, char *out, size_t out_len);
-int qr_decode_data(char *in, size_t in_len, char *out, size_t out_len, size_t *w, size_t *h);
-int qr_decode_file(const char *filename, char *out, size_t out_len, size_t *w, size_t *h);
+int qr_encode(char *in, char *out, size_t *out_len);
+int qr_decode_data(char *in, size_t in_len, char *out, size_t out_len);
+int qr_decode_file(const char *filename, char *out, size_t out_len);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif // _QR_H
