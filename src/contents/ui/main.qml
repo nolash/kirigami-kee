@@ -10,6 +10,8 @@ Kirigami.ApplicationWindow {
 	id: root
 	title: i18nc("@title:window", "Bilateral credit tracker")
 
+	controlsVisible: true
+
 	globalDrawer: Kirigami.GlobalDrawer{
 		isMenu: true
 		actions: [
@@ -27,7 +29,9 @@ Kirigami.ApplicationWindow {
 		]
 	}
 
-	pageStack.initialPage: Kirigami.Page  {
+
+	pageStack.initialPage: Kirigami.ScrollablePage {
+		id: overview
 		Controls.Label {
 			id: splashlabel
 			anchors.fill: parent
@@ -43,29 +47,32 @@ Kirigami.ApplicationWindow {
 				if (Backend.fingerprint != "") {
 					splashlabel.text = Backend.fingerprint;
 					passphrase.text = "";
-					pageStack.push(overview);
+					creditList.visible = true
 				}
 			}
 		}
-	}
-
-
-	Kirigami.ScrollablePage {
-		id: overview
-		visible: false
-		title: "credits for " + Backend.fingerprint
-		anchors.fill: parent
 		Kirigami.CardsListView {
 			model: creditModel
 			id: creditList
-			//model: creditListModel
-			//model: List
 			delegate: creditListDelegate
+		}
+		header: Kirigami.NavigationTabBar {
+			actions: [
+				Kirigami.Action {
+					text: "back"
+					visible: pageStack.depth > 1
+					onTriggered: {
+						console.log("back");
+						pageStack.pop();
+					}
+				}
+			]
 		}
 	}
 
 	Kirigami.ScrollablePage {
 		id: creditItem
+		visible: false
 		Controls.Label {
 			id: creditItemTitle
 			text: ""
@@ -93,25 +100,10 @@ Kirigami.ApplicationWindow {
 				echoMode: TextInput.Password
 				Kirigami.FormData.label: "passphrase:"
 			}
-
-//				Controls.Button {
-//					id: passphraseSend
-//					text: "unlock"
-//					onClicked: Backend.unlock(passphrase.text);
-//				}
-
 		}
 		onAccepted: Backend.unlock(passphrase.text);
 		onRejected: Qt.quit()
 	}
-	
-	//ListModel {
-		//id: creditListModel
-		//ListElement {
-		//	name: "foo"
-		//	description: "bar baz"
-		//}
-	//}
 
 	Component {
 		id: creditListDelegate
@@ -126,6 +118,8 @@ Kirigami.ApplicationWindow {
 						top: parent.top
 						right: parent.right
 					}
+					rowSpacing: Kirigami.Units.largeSpacing
+					columnSpacing: Kirigami.Units.largeSpacing
 					columns: overview.wideScreen ? 4 : 2
 
 					Kirigami.Heading {
@@ -142,25 +136,30 @@ Kirigami.ApplicationWindow {
 						}
 						Kirigami.Separator {
 							Layout.fillWidth: true
+							visible: name.length > 0
 
 						}
 						Controls.Label {
 							Layout.fillWidth: true
 							text: description
+							wrapMode: Text.WordWrap
+							visible: description.length > 0
 						}
 						Controls.Button {
-							text: "view"
+							text: i18n("View")
+							Layout.columnSpan: 2
 							onClicked: {
 								console.log("foo");
 								creditItemTitle.text = name
-								pageStack.push(creditItem);
+								if (!creditItem.visible) {
+									pageStack.push(creditItem);
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-
 	}
 }
 

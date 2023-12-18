@@ -7,7 +7,7 @@
 #include "zbar.h"
 
 #define QR_MODULE_SIZE 10
-#define QR_VERSION 2
+#define QR_VERSION 20
 
 int initialized = 0;
 

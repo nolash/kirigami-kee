@@ -3,6 +3,7 @@
 #include <QtQml>
 #include <QUrl>
 #include <QDebug>
+#include <QLocalServer>
 #include <QtQuick/qquickview.h>
 #include <KLocalizedContext>
 #include <KLocalizedString>
@@ -10,6 +11,7 @@
 #include "backend.h"
 #include "credit.h"
 #include "db.h"
+#include "rpc.h"
 
 
 int main(int argc, char *argv[]) {
@@ -22,7 +24,8 @@ int main(int argc, char *argv[]) {
 	size_t vl;
 	Import *im;
 	
-	std::string db_path;
+	std::string s;
+	QString sq;
 	Db *db;
 
 	Settings settings = Settings();
@@ -43,8 +46,13 @@ int main(int argc, char *argv[]) {
 
 	Backend backend;
 
-	db_path = settings.get(SETTINGS_DATA);
-	db = new Db(db_path);
+	RpcSocket rpc;
+	rpc.setSocketOptions(QLocalServer::UserAccessOption);
+	s = settings.get(SETTINGS_RUN) + "/sock.ipc";
+	rpc.listen(QString::fromStdString(s));
+
+	s = settings.get(SETTINGS_DATA);
+	db = new Db(s);
 	r = db->connect();
 	if (r) {
 		return 1;
