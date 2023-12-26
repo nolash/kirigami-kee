@@ -55,6 +55,11 @@ int Credit::deserialize(Import *im) {
 	return 0;
 }	
 
+std::ostream& operator << (std::ostream &out, const Credit *o) {
+	out << std::string("name: ") << o->name().toStdString();
+	// out << std::string("description: ") << o->description().toStdString(); // including this makes the string print empty in client
+	return out;
+}
 
 CreditListModel::CreditListModel(QObject *parent) : QAbstractListModel(parent) {
 }

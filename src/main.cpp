@@ -46,10 +46,12 @@ int main(int argc, char *argv[]) {
 
 	Backend backend;
 
-	RpcSocket rpc;
-	rpc.setSocketOptions(QLocalServer::UserAccessOption);
+	RpcSocket *rpc;
+	
+	rpc = new RpcSocket(&backend);
+	rpc->setSocketOptions(QLocalServer::UserAccessOption);
 	s = settings.get(SETTINGS_RUN) + "/sock.ipc";
-	rpc.listen(QString::fromStdString(s));
+	rpc->listen(QString::fromStdString(s));
 
 	s = settings.get(SETTINGS_DATA);
 	db = new Db(s);

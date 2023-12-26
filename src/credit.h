@@ -17,6 +17,7 @@ private:
 	QString m_name;
 	QString m_description;
 
+
 };
 
 class CreditListModel : public QAbstractListModel {
@@ -36,3 +37,5 @@ private:
 	QList<Credit> m_credits;
 
 };
+
+std::ostream& operator << (std::ostream &out, const Credit *o);
