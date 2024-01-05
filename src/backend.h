@@ -7,6 +7,7 @@
 #include "gpg.h"
 #include "settings.h"
 #include "db.h"
+#include "credit.h"
 
 
 enum State {
@@ -26,6 +27,8 @@ class Backend : public QObject {
 		QString fingerprint();
 		int init(Settings *settings);
 		void update_r(State, State);
+		void set_credit_list(CreditListModel *model);
+		int add(int action, void* item);
 		Q_SIGNAL void stateChanged();
 		Q_SIGNAL void keyLock();
 		Q_DECLARE_FLAGS(States, State)
@@ -41,6 +44,7 @@ class Backend : public QObject {
 		GpgStore m_gpg;
 		State m_state;
 		bool m_init;
+		CreditListModel *m_credit_model;
 		QTimer *m_timer_lock;
 		Db *m_db;
 };

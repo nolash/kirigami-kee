@@ -14,7 +14,7 @@ RpcSocket::RpcSocket(Backend *backend) {
 	m_backend = backend;
 }
 
-int process_new_certificate(char *b, size_t b_len) {
+int process_new_certificate(Backend *backend, char *b, size_t b_len) {
 	Import *im;
 	const Credit *credit;
 	std::ostringstream ss;
@@ -25,6 +25,7 @@ int process_new_certificate(char *b, size_t b_len) {
 	ss << credit;
 	s = ss.str().c_str();
 	debugLog(DEBUG_DEBUG, s);
+	backend->add(0, (void*)credit);
 	return 0;
 }
 
@@ -54,6 +55,7 @@ void RpcSocket::incomingConnection(quintptr fd) {
 	cmd = buf[0];
 	buf[c] = 0x0;
 	unpacked_len = 1024;
+	unpacked_len = c;
 	r = unpack(buf+1, strlen(buf+1), unpacked, &unpacked_len);
 	if (r) {
 		debugLog(DEBUG_ERROR, "command unpack failed");
@@ -62,7 +64,7 @@ void RpcSocket::incomingConnection(quintptr fd) {
 
 	switch(cmd){
 		case 1:
-			r = process_new_certificate(unpacked, unpacked_len);
+			r = process_new_certificate(m_backend, unpacked, unpacked_len);
 			break;
 		default:
 			sock.write(onetwo+1, 1);

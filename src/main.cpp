@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	CreditListModel credit_model;
+	backend.set_credit_list(&credit_model);
 
 	c = 0;
 	while (1) {

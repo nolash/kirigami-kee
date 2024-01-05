@@ -1,3 +1,6 @@
+#ifndef _CREDIT_H
+#define _CREDIT_H
+
 #include <QAbstractListModel>
 
 #include "export.h"
@@ -8,14 +11,15 @@ class Credit {
 
 public:
 	Credit(Import *im);
-	Credit(const QString &name, const QString &description);
+	//Credit(const QString name, const QString description);
+	Credit(std::string name, std::string description);
 	QString name() const;
 	QString description() const;
 	int serialize(Export *ex);
 	int deserialize(Import *im);
 private:
-	QString m_name;
-	QString m_description;
+	std::string m_name;
+	std::string m_description;
 
 
 };
@@ -30,7 +34,7 @@ public:
 	CreditListModel(QObject *parent = 0);
 	int rowCount(const QModelIndex &parent = QModelIndex())	const override;
 	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-	void addItem(const Credit &item);
+	void addItem(const Credit item);
 protected:
 	QHash<int, QByteArray> roleNames() const override;
 private:
@@ -39,3 +43,5 @@ private:
 };
 
 std::ostream& operator << (std::ostream &out, const Credit *o);
+
+#endif // _CREDIT_H

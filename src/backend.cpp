@@ -4,11 +4,13 @@
 #include "backend.h"
 #include "gpg.h"
 #include "settings.h"
+#include "credit.h"
 
 
 Backend::Backend(QObject *parent) : QObject(parent) {
 	m_state = State(0);
 	m_timer_lock = 0x0;
+	m_credit_model = 0x0;
 }
 
 unsigned int Backend::state() {
@@ -24,6 +26,10 @@ int Backend::init(Settings *settings) {
  	return 0;
 }
 
+void Backend::set_credit_list(CreditListModel *credit_model) {
+	m_credit_model = credit_model;
+}
+
 int Backend::lock() {
 	if (m_timer_lock != 0x0 && m_timer_lock->isActive()) {
 		m_timer_lock->stop();
@@ -31,6 +37,12 @@ int Backend::lock() {
 	delete m_timer_lock;
 	update_r(State(0), State(KeyLoaded));
 	Q_EMIT keyLock();
+	return 0;
+}
+
+int Backend::add(int action, void *item) {
+	Credit *credit = (Credit*)item;
+	m_credit_model->addItem(*credit);
 	return 0;
 }
 
