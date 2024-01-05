@@ -25,16 +25,12 @@ QString Credit::description() const {
 
 int Credit::serialize(Export *ex) {
 	char *s;
-	QByteArray b;
 
-	//b = m_name.toUtf8();
-	//s = b.data();
-	ex->addItem((char*)m_name.c_str(), m_name.length());
+	s = (char*)m_name.c_str();
+	ex->addItem(s, m_name.length());
 
-	//b = m_description.toUtf8();
-	//s = b.data();
-	ex->addItem((char*)m_description.c_str(), m_description.length());
-
+	s = (char*)m_description.c_str();
+	ex->addItem(s, m_description.length());
 	return 0;
 }
 
@@ -48,7 +44,6 @@ int Credit::deserialize(Import *im) {
 		return 1;
 	}
 	buf[r] = 0x0;
-	//m_name = QString::fromUtf8(buf, r);
 	m_name.replace(0, r, buf);
 
 	r = im->read(buf, 1024);	
@@ -56,7 +51,6 @@ int Credit::deserialize(Import *im) {
 		return 1;
 	}
 	buf[r] = 0x0;
-	//m_description = QString::fromUtf8(buf, r);
 	m_description.replace(0, r, buf);
 	return 0;
 }	

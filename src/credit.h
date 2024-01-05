@@ -11,7 +11,6 @@ class Credit {
 
 public:
 	Credit(Import *im);
-	//Credit(const QString name, const QString description);
 	Credit(std::string name, std::string description);
 	QString name() const;
 	QString description() const;

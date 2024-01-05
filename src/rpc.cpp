@@ -14,7 +14,7 @@ RpcSocket::RpcSocket(Backend *backend) {
 	m_backend = backend;
 }
 
-int process_new_certificate(Backend *backend, char *b, size_t b_len) {
+int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len) {
 	Import *im;
 	const Credit *credit;
 	std::ostringstream ss;
@@ -29,15 +29,41 @@ int process_new_certificate(Backend *backend, char *b, size_t b_len) {
 	return 0;
 }
 
-void RpcSocket::incomingConnection(quintptr fd) {
-	char cmd;
-	char buf[1024];
-	char unpacked[1024];
-	size_t unpacked_len;
-	char onetwo[2] = { 0 , 1};
-	int c;
-	size_t l;
+int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *result) {
 	int r;
+	char cmd;
+	size_t unpacked_len;
+	char unpacked[1024];
+
+	cmd = buf[0];
+	buf[buf_len] = 0x0;
+	unpacked_len = 1024;
+	//unpacked_len = buf_len;
+	r = unpack(buf+1, strlen(buf+1), unpacked, &unpacked_len);
+	if (r) {
+		debugLog(DEBUG_ERROR, "command unpack failed");
+		return 1;
+	}
+
+	switch(cmd){
+		case 1:
+			r = process_rpc_new_certificate(backend, unpacked, unpacked_len);
+			break;
+		default:
+			*result = 1;
+			debugLog(DEBUG_ERROR, "unknown ipc command");
+			return 1;
+	}
+	*result = 0;
+	debugLog(DEBUG_TRACE, "processed ipc command");
+	return 0;
+}
+
+void RpcSocket::incomingConnection(quintptr fd) {
+	char buf[1024];
+	int c;
+	int r;
+	char r_cmd;
 	bool rr;
 	QLocalSocket sock;
 	
@@ -52,29 +78,11 @@ void RpcSocket::incomingConnection(quintptr fd) {
 		debugLog(DEBUG_ERROR, "short ipc command");
 		return;
 	}
-	cmd = buf[0];
-	buf[c] = 0x0;
-	unpacked_len = 1024;
-	unpacked_len = c;
-	r = unpack(buf+1, strlen(buf+1), unpacked, &unpacked_len);
-	if (r) {
-		debugLog(DEBUG_ERROR, "command unpack failed");
-		return;
-	}
 
-	switch(cmd){
-		case 1:
-			r = process_new_certificate(m_backend, unpacked, unpacked_len);
-			break;
-		default:
-			sock.write(onetwo+1, 1);
-			sock.flush();
-			sock.close();
-			debugLog(DEBUG_ERROR, "unknown ipc command");
-			return;
-	}
-	sock.write(onetwo, 1);
+	r_cmd = 0;
+	r = process_rpc_command(m_backend, buf, c, &r_cmd);
+	sock.write(&r_cmd, 1);
 	sock.flush();
 	sock.close();
-	debugLog(DEBUG_TRACE, "processed ipc command");
 }
+
