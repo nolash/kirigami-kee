@@ -11,11 +11,12 @@
 
 Db::Db(std::string conn) {
 	m_connstr = conn;
-	m_current_key = DbNoKey;
 	m_tx = NULL;
 	m_env = NULL;
 	m_crsr = NULL;
 	m_started = 0;
+	m_browsing = 0;
+	this->reset();
 }
 
 int Db::connect() {
@@ -23,23 +24,25 @@ int Db::connect() {
 
 	r = mdb_env_create(&m_env);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 	r = mdb_env_open(m_env, m_connstr.c_str(), MDB_NOLOCK, S_IRWXU);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 
-	return 0;
+	return ERR_OK;
 }
 
 Db::~Db() {
 	mdb_env_close(m_env);
 }
 
-// TODO: split up and optimize
-int Db::put(enum DbKey skey, char *data, size_t data_len) {
+/**
+ * \todo split up and optimize
+ */
+int Db::put(enum DbKey pfx, char *data, size_t data_len) {
 	int r;
 	char *buf;
 	char buf_reverse[33];
@@ -58,7 +61,7 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 
 	r = clock_gettime(CLOCK_REALTIME, &ts);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 	memcpy(rts, &ts.tv_sec, sizeof(ts.tv_sec));
 	memcpy(rts + sizeof(ts.tv_sec), &ts.tv_nsec, sizeof(ts.tv_nsec));
@@ -71,19 +74,19 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	}
 	gcry_md_write(h, data, data_len);
 	rv = gcry_md_read(h, 0);
-	kv = (char)skey;
+	kv = (char)pfx;
 	memcpy(buf, &kv, 1);
 	memcpy(buf + 1, rts, sizeof(struct timespec));
 	memcpy(buf + 1 + sizeof(struct timespec), rv, 32);
 
 	r = mdb_txn_begin(m_env, NULL, 0, &tx);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 	r = mdb_dbi_open(tx, NULL, MDB_CREATE, &dbi);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 	k.mv_data = buf;
@@ -93,7 +96,7 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 
 	r = mdb_put(tx, dbi, &k, &v, 0);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 	// put reverse lookup
@@ -107,61 +110,90 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 
 	r = mdb_put(tx, dbi, &k, &v, 0);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 	r = mdb_txn_commit(tx);
 	if (r) {
-		return 1;
+		return ERR_FAIL;
 	}
 
-	return 0;
+	return ERR_OK;
 }
 
-int Db::next (enum DbKey skey, char **key, size_t *key_len, char **value, size_t *value_len) {
+/**
+ *
+ * \todo change cursor to jump to new search match when current (last) prefix does not match lookup prefix.
+ *
+ */
+int Db::next (enum DbKey pfx, char **key, size_t *key_len, char **value, size_t *value_len) {
 	int r;
-	char start;
-	MDB_val k;
-	MDB_val v;
+	unsigned char start[DB_KEY_SIZE_LIMIT];
 
-	if (skey != m_current_key) {
+	memset(start, 0, DB_KEY_SIZE_LIMIT);;
+	if ((char)pfx == 0) {
+		return ERR_DB_INVALID;
+	}
+
+	if (m_current_key == DbNoKey) {
 		if (m_started) {
 			mdb_cursor_close(m_crsr);
 			mdb_dbi_close(m_env, m_dbi);
 			mdb_txn_abort(m_tx);
 		}
 
-
 		r = mdb_txn_begin(m_env, NULL, MDB_RDONLY, &m_tx);
 		if (r) {
-			return 1;
+			return ERR_DB_FAIL;
 		}
 		r = mdb_dbi_open(m_tx, NULL, 0, &m_dbi);
 		if (r) {
-			return 1;
+			return ERR_DB_FAIL;
 		}
 		
 		r = mdb_cursor_open(m_tx, m_dbi, &m_crsr);	
 		if (r) {
-			return 1;
+			return ERR_DB_FAIL;
 		}
-		m_current_key = skey;
+		m_current_key = pfx;
 
-		start = (char)skey;
-		k.mv_data = &start;
-		k.mv_size = 1;
+		start[0] = (char)pfx;
+		m_k.mv_size = 1;
+		if (!m_browsing) {
+			if (*key != 0) {
+				memcpy(start+1, *key, *key_len);
+				m_k.mv_size += *key_len;
+			}
+		}
+		m_k.mv_data = start;
 	}
 
-
-	r = mdb_cursor_get(m_crsr, &k, &v, MDB_NEXT);
+	if (!m_browsing) {
+		r = mdb_cursor_get(m_crsr, &m_k, &m_v, MDB_SET_RANGE);
+		m_browsing = 1;
+	} else {
+		r = mdb_cursor_get(m_crsr, &m_k, &m_v, MDB_NEXT_NODUP);
+	}
 	if (r) {
-		return 1;
+		return ERR_DB_FAIL;
+	}
+	start[0] = (char)*((char*)m_k.mv_data);
+	if (start[0] != m_current_key) {
+		reset();
+		return ERR_DB_NOMATCH;
 	}
 
-	*key = (char*)k.mv_data;
-	*key_len = k.mv_size;
-	*value = (char*)v.mv_data;
-	*value_len = v.mv_size;
+	*key = (char*)m_k.mv_data;
+	*key_len = m_k.mv_size;
+	*value = (char*)m_v.mv_data;
+	*value_len = m_v.mv_size;
 
 	return 0;
+}
+
+void Db::reset() {
+	m_k.mv_data = 0x0;
+	m_k.mv_size = 0;
+	m_current_key = DbNoKey;
+	m_browsing = 0;
 }

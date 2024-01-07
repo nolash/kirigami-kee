@@ -71,7 +71,9 @@ int test_processor() {
 	return r;
 }
 
-// TODO: doesnt receive from server socket, probably needs threads
+/**
+ * \todo doesnt receive from server socket, probably needs threads
+ */
 int test_socket() {
 	int r;
 

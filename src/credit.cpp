@@ -34,10 +34,14 @@ int Credit::serialize(Export *ex) {
 	return 0;
 }
 
+/**
+ * \todo configurable buffer size
+ * 
+ */
 int Credit::deserialize(Import *im) {
 	int r;
 	std::string s;
-	char buf[1024]; // TODO: settable limit
+	char buf[1024];
 	
 	r = im->read(buf, 1024);
 	if (!r) {

@@ -4,7 +4,6 @@
 #include <time.h>
 
 
-
 int test_put() {
 	int r;
 	Db *db;
@@ -58,6 +57,8 @@ int test_iter() {
 		return 1;
 	}
 
+	k = 0;
+	v = 0;
 	r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
 	if (r) {
 		return 1;
@@ -81,12 +82,54 @@ int test_iter() {
 	}
 
 	r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
+	if (!r) {
+		return 1;
+	}
+
+	return 0;
+}
+
+int test_iter_mid() {
+	int r;
+	Db *db;
+	char *d;
+	char s[1024] = "db_XXXXXX";
+	char data[64];
+	char kk[64];
+	char *k = kk;
+	char *v;
+	size_t kl;
+	size_t vl;
+	char kc[33];
+	d = mkdtemp(s);
+
+	db = new Db(d);
+	r = db->connect();
 	if (r) {
 		return 1;
 	}
 
-	r = memcmp(k, kc, 33);
+	strcpy(data, "foo");	
+	r = db->put(DbKeyCreditItem, data, 3);
 	if (r) {
+		return 1;
+	}
+
+	strcpy(data, "barbaz");	
+	r = db->put(DbKeyCreditItem, data, 6);
+	if (r) {
+		return 1;
+	}
+
+	k[0] = 0x2d;
+	kl = 1;
+	r = db->next(DbKeyReverse, &k, &kl, &v, &vl);
+	if (r) {
+		return 1;
+	}
+
+	r = db->next(DbKeyReverse, &k, &kl, &v, &vl);
+	if (!r) {
 		return 1;
 	}
 
@@ -105,6 +148,12 @@ int main() {
 	if (r) {
 		return 1;
 	}
+
+	r = test_iter_mid();
+	if (r) {
+		return 1;
+	}
+
 
 	return 0;
 }

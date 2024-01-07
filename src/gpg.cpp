@@ -207,6 +207,9 @@ int key_from_path(gcry_sexp_t *key, const char *p, const char *passphrase) {
 	return r;
 }
 
+/**
+ * \todo consistent endianness for key length in persistent storage (fwrite)
+ */
 int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 	int r;
 	FILE *f;
@@ -247,9 +250,7 @@ int key_create(gcry_sexp_t *key, const char *p, const char *passphrase) {
 	if (f == NULL) {
 		return ERR_KEYFAIL;
 	}
-	// TODO rename c
 	l = c;
-	// TODO: endian
 	c = fwrite(&kl, sizeof(int), 1, f);
 	if (c != 1) {
 		fclose(f);
