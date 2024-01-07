@@ -1,5 +1,5 @@
-#ifndef _KEE_GPG
-#define _KEE_GPG
+#ifndef _KEE_GPG_H
+#define _KEE_GPG_H
 #include <string>
 #include <stddef.h>
 

@@ -84,8 +84,8 @@ QVariant CreditListModel::data(const QModelIndex &index, int role) const {
 }
 
 void CreditListModel::addItem(const Credit item) {
-	beginInsertRows(QModelIndex(),  rowCount(), rowCount());
-	m_credits << item;
+	beginInsertRows(QModelIndex(), 0, 0);
+	m_credits.prepend(item);
 	endInsertRows();
 }
 

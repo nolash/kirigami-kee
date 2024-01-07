@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "gpg.h"
 #include "hex.h"
+#include "digest.h"
 
 #define BUFLEN 1024 * 1024
 
@@ -294,20 +295,12 @@ char *GpgStore::get_fingerprint() {
 
 
 int GpgStore::digest(char *out, std::string in) {
-	gcry_error_t e;
-	gcry_md_hd_t h;
-	unsigned char *v;
+	const char *s;
+	size_t l;
 
-	e = gcry_md_open(&h, GCRY_MD_SHA256, GCRY_MD_FLAG_SECURE);
-	if (e) {
-		return ERR_DIGESTFAIL;
-	}
-
-	gcry_md_write(h, in.c_str(), in.length());
-	v = gcry_md_read(h, 0);
-	memcpy(out, v, m_passphrase_digest_len);
-	gcry_md_close(h);
-	return ERR_OK;
+	l = in.length();
+	s = in.c_str();
+	return calculate_digest(s, l, out); //, m_passphrase_digest_len);
 }
 
 GpgStore::GpgStore() {

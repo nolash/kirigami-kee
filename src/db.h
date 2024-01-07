@@ -7,6 +7,7 @@
 enum DbKey {
 	DbNoKey = 0x00,
 	DbKeyCreditItem = 0x01,
+	DbKeyReverse = 0xff,
 };
 
 class Db {

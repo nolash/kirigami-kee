@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "db.h"
+#include <time.h>
 
 
 
@@ -36,6 +37,7 @@ int test_iter() {
 	char *v;
 	size_t kl;
 	size_t vl;
+	char kc[33];
 	d = mkdtemp(s);
 
 	db = new Db(d);
@@ -65,6 +67,8 @@ int test_iter() {
 	if (r) {
 		return 1;
 	}
+	kc[0] = 0xff;
+	memcpy(kc + 1, k + 1 + sizeof(struct timespec), 32);
 
 	r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
 	if (r) {
@@ -77,7 +81,12 @@ int test_iter() {
 	}
 
 	r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
-	if (!r) {
+	if (r) {
+		return 1;
+	}
+
+	r = memcmp(k, kc, 33);
+	if (r) {
 		return 1;
 	}
 

@@ -16,6 +16,7 @@ public:
 	QString description() const;
 	int serialize(Export *ex);
 	int deserialize(Import *im);
+	int sum(const char *in, size_t in_len, char *out, size_t *out_len);
 private:
 	std::string m_name;
 	std::string m_description;

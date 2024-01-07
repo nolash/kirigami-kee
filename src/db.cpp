@@ -38,9 +38,11 @@ Db::~Db() {
 	mdb_env_close(m_env);
 }
 
+// TODO: split up and optimize
 int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	int r;
 	char *buf;
+	char buf_reverse[33];
 	unsigned char *rv;
 	char kv;
 	struct timespec ts;
@@ -73,7 +75,6 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	memcpy(buf, &kv, 1);
 	memcpy(buf + 1, rts, sizeof(struct timespec));
 	memcpy(buf + 1 + sizeof(struct timespec), rv, 32);
-	gcry_md_close(h);
 
 	r = mdb_txn_begin(m_env, NULL, 0, &tx);
 	if (r) {
@@ -89,6 +90,20 @@ int Db::put(enum DbKey skey, char *data, size_t data_len) {
 	k.mv_size = 1 + 32 + sizeof(struct timespec);
 	v.mv_data = data;
 	v.mv_size = data_len;
+
+	r = mdb_put(tx, dbi, &k, &v, 0);
+	if (r) {
+		return 1;
+	}
+
+	// put reverse lookup
+	buf_reverse[0] = (char)DbKeyReverse;
+	memcpy(buf_reverse+1, rv, 32);
+	k.mv_data = buf_reverse; 
+	k.mv_size = 33;
+	v.mv_data = buf;
+	v.mv_size = 1 + 32 + sizeof(struct timespec);
+	gcry_md_close(h); // keep the handle open until here because we use its digest value again for the key
 
 	r = mdb_put(tx, dbi, &k, &v, 0);
 	if (r) {
