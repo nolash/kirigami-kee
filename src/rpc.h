@@ -1,3 +1,6 @@
+#ifndef _RPC_H
+#define _RPC_H
+
 #include <QLocalServer>
 #include "backend.h"
 
@@ -12,3 +15,5 @@ protected:
 private:
 	Backend *m_backend;
 };
+
+#endif // _RPC_H

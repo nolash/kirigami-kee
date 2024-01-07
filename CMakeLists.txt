@@ -21,4 +21,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(src)
 add_subdirectory(aux)
 
+find_package(Doxygen)
+add_custom_target(docs ALL COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
