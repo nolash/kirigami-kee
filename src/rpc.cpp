@@ -58,8 +58,9 @@ int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *resul
 }
 
 void RpcSocket::incomingConnection(quintptr fd) {
-	char buf[1024];
+	char buf[RPC_COMMAND_SIZE];
 	int c;
+	size_t l;
 	char r;
 	bool rr;
 	QLocalSocket sock;
@@ -70,14 +71,25 @@ void RpcSocket::incomingConnection(quintptr fd) {
 	}
 
 	sock.waitForReadyRead();
-	c = sock.read(buf, 1024);
-	if (c == 1) {
+	l = 0;
+	while (1) {
+		c = sock.read(buf+l, RPC_BUFFER_SIZE);
+		if (c == 0) {
+			break;
+		}
+		l += c;
+		if (l > RPC_COMMAND_SIZE) {
+			debugLog(DEBUG_ERROR, "too long ipc command");
+			return;
+		}
+	}
+	if (l < 2) {
 		debugLog(DEBUG_ERROR, "short ipc command");
 		return;
 	}
 
 	r = 0;
-	process_rpc_command(m_backend, buf, c, &r);
+	process_rpc_command(m_backend, buf, l, &r);
 	sock.write(&r, 1);
 	sock.flush();
 	sock.close();

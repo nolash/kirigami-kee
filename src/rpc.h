@@ -4,6 +4,14 @@
 #include <QLocalServer>
 #include "backend.h"
 
+#ifndef RPC_BUFFER_SIZE
+#define RPC_BUFFER_SIZE	4096
+#endif
+
+#ifndef RPC_COMMAND_SIZE
+#define RPC_COMMAND_SIZE 1048576
+#endif
+
 
 class RpcSocket : public QLocalServer {
 	Q_OBJECT
