@@ -98,15 +98,26 @@ public:
 	 */
 	void reset();
 private:
+	/// Cached connection string.
 	std::string m_connstr;
+	/// Current prefix used in search.
 	enum DbKey m_current_key;
+	/// Part of LMDB interfacing.
 	MDB_env *m_env;
+	/// Part of LMDB interfacing.
 	MDB_dbi m_dbi;
+	/// Part of LMDB interfacing.
 	MDB_txn *m_tx;
+	/// Part of LMDB interfacing.
 	MDB_cursor *m_crsr;
+	/// Last key retrieved from database.
 	MDB_val m_k;
+	/// Last value retrieved from database.
 	MDB_val m_v;
+	/// If true, database connection has been established.
 	bool m_started;
+	/// If true, \c next(...) has been called successfully.
+	/// \todo Likely redundant; possible covered by m_current_key
 	bool m_browsing;
 };
 

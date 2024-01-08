@@ -25,7 +25,7 @@ int Export::addItem(char *in, size_t in_len) {
 	char b[10];
 
 	if (in_len == 0) {
-		return 1;
+		return ERR_FAIL;
 	}
 
 	r = 0;
