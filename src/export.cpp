@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "export.h"
+#include "err.h"
 
 extern "C" {
 	#include <varint.h>

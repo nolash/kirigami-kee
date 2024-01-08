@@ -1,3 +1,8 @@
+/**
+ * 
+ * Error codes within context of the kee application and backend.
+ *
+ */
 enum keeError {
 	ERR_OK,
 	ERR_FAIL,

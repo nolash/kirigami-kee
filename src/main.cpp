@@ -63,6 +63,8 @@ int main(int argc, char *argv[]) {
 	CreditListModel credit_model;
 	backend.set_credit_list(&credit_model);
 
+	k = 0;
+	kl = 0;
 	c = 0;
 	while (1) {
 		r = db->next(DbKeyCreditItem, &k, &kl, &v, &vl);
