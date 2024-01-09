@@ -4,6 +4,7 @@
 #include <time.h>
 
 
+/// test insert entry into database
 int test_put() {
 	int r;
 	Db *db;
@@ -26,6 +27,8 @@ int test_put() {
 	return 0;
 }
 
+
+/// test retrieve consecutive entries from first entry with prefix
 int test_iter() {
 	int r;
 	Db *db;
@@ -89,6 +92,8 @@ int test_iter() {
 	return 0;
 }
 
+
+/// test retrieve sonsecutive entries from a given key segment.
 int test_iter_mid() {
 	int r;
 	Db *db;

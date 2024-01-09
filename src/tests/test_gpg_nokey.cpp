@@ -5,6 +5,7 @@
 #include "sys/stat.h"
 
 
+/// test using keystore when no store exists
 int main() {
 	int r;
 	GpgStore *gpg;

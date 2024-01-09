@@ -1,6 +1,7 @@
 #include "rpc.h"
 
 
+/// Rpc socket implementation for use in tests.
 class RpcTest : public QObject {
 	Q_OBJECT
 public:

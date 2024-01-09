@@ -5,6 +5,7 @@
 #include "testutil.h"
 
 
+/// test symmetric encryption padding
 int test_pad() {
 	size_t r;
 
@@ -26,6 +27,8 @@ int test_pad() {
 	return 0;
 }
 
+
+/// test symmetric encryption of text content
 int test_crypt(char *key, char *nonce) {
 	int r;
 	size_t l;
@@ -53,6 +56,7 @@ int test_crypt(char *key, char *nonce) {
 	return 0;
 }
 
+/// test symmetric encryption of binary content
 int test_crypt_binary(char *key, char *nonce) {
 	int r;
 	size_t l;

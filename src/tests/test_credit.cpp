@@ -3,6 +3,8 @@
 #include "credit.h"
 #include "export.h"
 
+
+/// test serialization of credit item
 int test_export() {
 	int r;
 	Export *ex;
@@ -22,6 +24,7 @@ int test_export() {
 	return 0;
 }
 
+/// test deserialization of credit item
 int test_import() {
 	int r;
 	int l;
@@ -57,6 +60,8 @@ int test_import() {
 	return 0;
 }
 
+
+/// ...?
 int test_import_first() {
 	int r;
 	int l;

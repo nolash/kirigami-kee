@@ -12,7 +12,7 @@
 
 /**
  *
- * Defines individual high-level state flags for the application, for use with signal handling.
+ * \brief Defines individual high-level state flags for the application, for use with signal handling.
  *
  */
 enum State {
@@ -26,7 +26,7 @@ enum State {
 
 /**
  *
- * User interface proxy to components and data models.
+ * \brief User interface proxy to components and data models.
  *
  * An instance is not usable unless initialized with \c init(...).
  *

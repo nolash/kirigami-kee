@@ -11,7 +11,7 @@ enum debugLevel {
 	DEBUG_ERROR,
 	/// Warning, condition that may contribute to affecting the state of the program adversely.
 	DEBUG_WARNING,
-	/// Info, events that an end-user may be interested in during normal opertaion.
+	/// Info, events that an end-user may be interested in during normal operation.
 	DEBUG_INFO,
 	/// Debug, events that a developer may be intereted in during normal operation.
 	DEBUG_DEBUG,

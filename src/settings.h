@@ -15,6 +15,10 @@ enum SettingsType {
 };
 
 
+/**
+ * \brief Encapsulates settings for application.
+ *
+ */
 class Settings {
 
 	public:

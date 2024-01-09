@@ -5,7 +5,9 @@
 #include "test_rpc.h"
 
 
+/// Define interface for rpc command processor, not exported by rpc package.
 int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *result);
+
 
 int RpcTest::connect_test(RpcSocket *rpc) {
 	bool r_sock;
@@ -55,6 +57,7 @@ int RpcTest::connect_test(RpcSocket *rpc) {
 	return 0;
 }
 
+/// test command processor
 int test_processor() {
 	int r;
 	char r_rpc;

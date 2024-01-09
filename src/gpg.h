@@ -13,7 +13,7 @@
 
 /**
  *
- * Encrypt the given string data with the provided encryption key and nonce.
+ * \brief Encrypt the given string data with the provided encryption key and nonce.
  *
  * \sa encryptb
  * 
@@ -76,7 +76,7 @@ size_t get_padsize(size_t insize, size_t blocksize);
 
 /**
  *
- * Interface to the encrypted key storage for both identity public key and the key used for encryption of the identity public key.
+ * \brief Interface to the encrypted key storage for both identity public key and the key used for encryption of the identity public key.
  *
  */
 class GpgStore {

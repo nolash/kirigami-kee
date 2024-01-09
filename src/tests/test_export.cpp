@@ -3,6 +3,7 @@
 #include "export.h"
 
 
+/// unit-test export-import roundtrip with generic data
 int main() {
 	int r;
 	int l;

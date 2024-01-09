@@ -3,6 +3,7 @@
 #include "gpg.h"
 
 
+/// test opening existing keystore
 int main() {
 	int r;
 	GpgStore *gpg;

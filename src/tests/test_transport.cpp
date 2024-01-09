@@ -5,6 +5,8 @@
 #include "qr.h"
 #include "zbar.h"
 
+
+/// test read of qr file
 int test_qr_img_file_in() {
 	int r;
 	char out[512 * 1024];
@@ -19,6 +21,9 @@ int test_qr_img_file_in() {
 
 	return 0;
 }
+
+
+/// test read of qr data from memory
 int test_qr_img_data_in() {
 	int r;
 	int l;
@@ -53,6 +58,11 @@ int test_qr_img_data_in() {
 	return 0;
 }
 
+
+/**
+ * test generate qr code
+ * \todo check output matches input
+ */
 int test_qr_out() {
 	int r;
 	size_t l;
@@ -78,6 +88,8 @@ int test_qr_out() {
 
 }
 
+
+/// check that encode and decode for transport is symmetric
 int test_roundtrip() {
 	int r;
 	size_t c;

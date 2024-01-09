@@ -3,7 +3,7 @@
 
 /**
  *
- * Encapsulats all suppoerted integer lengths for endian conversion.
+ * \brief Encapsulats all suppoerted integer lengths for endian conversion.
  *
  */
 union le {
