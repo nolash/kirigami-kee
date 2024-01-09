@@ -14,6 +14,9 @@ RpcSocket::RpcSocket(Backend *backend) {
 	m_backend = backend;
 }
 
+#ifndef ISTESTING
+static
+#endif
 int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len) {
 	Import *im;
 	const Credit *credit;
@@ -30,6 +33,9 @@ int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len) {
 	return 0;
 }
 
+#ifndef ISTESTING
+static
+#endif
 int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *result) {
 	int r;
 	char cmd;

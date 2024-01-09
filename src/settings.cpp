@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "string.h"
 #include "errno.h"
+#include "err.h"
 #include "debug.h"
 
 Settings::Settings() {
@@ -29,7 +30,7 @@ int Settings::init() {
 	s = "datadir: " + m_data + "\nrundir: " + m_run;
 	debugLog(DEBUG_DEBUG, s.c_str());
 
-	return 0;
+	return ERR_OK;
 }
 
 std::string Settings::get(SettingsType type) {
@@ -60,7 +61,7 @@ int Settings::set(SettingsType type, std::string data) {
 			m_locktime = data;
 			break;
 		default:
-			return 1;
+			return ERR_FAIL;
 	}
-	return 0;
+	return ERR_OK;
 }

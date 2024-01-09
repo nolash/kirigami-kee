@@ -5,6 +5,7 @@
 #include <b64/cdecode.h>
 #include <zlib.h>
 #include "transport.h"
+#include "err.h"
 
 
 static int pack_compress(char *in, size_t in_len, char *out, size_t *out_len) {
@@ -106,17 +107,17 @@ int pack(char *in, size_t in_len, char *out, size_t *out_len) {
 	r = pack_compress(in, in_len, buf, out_len);
 	if (r) {
 		free(buf);	
-		return 1;
+		return ERR_FAIL;
 	}
 	
 	r = pack_encode(buf, *out_len, out, out_len);
 	if (r) {
 		free(buf);	
-		return 1;
+		return ERR_FAIL;
 	}
 
 	free(buf);
-	return 0;
+	return ERR_OK;
 }
 
 int unpack(char *in, size_t in_len, char *out, size_t *out_len) {
@@ -128,15 +129,15 @@ int unpack(char *in, size_t in_len, char *out, size_t *out_len) {
 	r = unpack_decode(in, in_len, buf, out_len);
 	if (r) {
 		free(buf);	
-		return 1;
+		return ERR_FAIL;
 	}
 
 	r = unpack_decompress(buf, *out_len, out, out_len);
 	if (r) {
 		free(buf);	
-		return 1;
+		return ERR_FAIL;
 	}
 
 	free(buf);
-	return 0;
+	return ERR_OK;
 }

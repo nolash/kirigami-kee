@@ -13,6 +13,10 @@
 #endif
 
 
+/**
+ *
+ * \brief Local socket enabling RPC commands for GUI operations.
+ */
 class RpcSocket : public QLocalServer {
 	Q_OBJECT
 
