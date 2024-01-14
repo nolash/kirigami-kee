@@ -2,6 +2,7 @@ import QtQml 2.15
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.15
+import QtMultimedia 5.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.defalsify.kde.credittracker 1.0
 
@@ -17,7 +18,16 @@ Kirigami.ApplicationWindow {
 		actions: [
 			Kirigami.Action {
 				text: i18n("Lock")
+				icon.name: "lock"
 				onTriggered: Backend.lock()
+			},
+			Kirigami.Action {
+				text: i18n("Import from QR")
+				icon.name: "view-barcode-qr"
+				onTriggered: function () {
+					pageStack.push(qrscanner);
+					shutter.start();
+				}
 			},
 			Kirigami.Action {
 				text: i18n("Quit")
@@ -161,6 +171,74 @@ Kirigami.ApplicationWindow {
 			}
 		}
 	}
+
+	Kirigami.Page {
+		id: qrscanner
+		visible: false
+		Column {
+			Controls.ComboBox {
+				id: cameraSelect
+				model: QtMultimedia.availableCameras
+				delegate: Controls.ItemDelegate {
+					text: modelData.displayName
+				}
+				editable: false
+				displayText: QtMultimedia.availableCameras[cameraSelect.currentIndex].displayName;
+				onActivated: function(i) {
+					console.log(QtMultimedia.availableCameras[i].deviceId);
+					camera.deviceId = QtMultimedia.availableCameras[i].deviceId;	
+				}
+			}
+
+			VideoOutput {
+				id: viewfinder
+				source: camera
+				x: 100
+				y: 100
+			}
+
+			Camera {
+				id: camera
+				position: Camera.FrontFace
+				captureMode: Camera.CaptureStillImage
+				videoRecorder {
+					resolution: "640x480"
+					frameRate: 30
+				}
+				imageCapture {
+					id: camcap
+					onImageCaptured: function (reqid, img) {
+						Backend.image_catch(camcap.capturedImagePath);
+					}
+				}
+			}
+		}
+		actions.contextualActions: [
+			Kirigami.Action {
+				icon.name: "gtk-close"
+				text: "close"
+				onTriggered: function() {
+					shutter.stop();
+					pageStack.pop();
+				}
+			}
+		]
+	}
+
+	Item {
+		Timer {
+			id: shutter
+			interval: 500 
+			repeat: true
+			running: false
+			triggeredOnStart: true
+			onTriggered: function() {
+				console.log("shot");
+				camera.imageCapture.capture();
+			}
+		}
+	}
+	
 }
 
 

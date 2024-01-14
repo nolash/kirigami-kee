@@ -5,6 +5,7 @@
 
 #include "qr.h"
 #include "zbar.h"
+#include "err.h"
 
 #define QR_MODULE_SIZE 10
 #define QR_VERSION 20
@@ -21,7 +22,7 @@ static ImageInfo *qr_img_init(ExceptionInfo *img_ex) {
 	return CloneImageInfo(NULL);
 }
 
-static int qr_y800_decode(char *in, size_t in_len, size_t width, size_t height, char *out, size_t *out_len) {
+int qr_y800_decode(char *in, size_t in_len, size_t width, size_t height, char *out, size_t *out_len) {
 	int r;
 	zbar_image_t *zimg;
 	zbar_image_scanner_t *zscan;
@@ -83,6 +84,9 @@ static int qr_img_decode(Image *img, char *out, size_t out_len) {
 
 	r = qr_y800_decode(px, l, img->columns, img->rows, out, &out_len);
 	free(px);
+	if (r) {
+		r = 3;
+	}
 	return r;
 }
 
@@ -95,13 +99,14 @@ int qr_decode_pixels_file(const char *filename, char *out, size_t out_len) {
 	strcpy(img_info->filename, filename);
 	img = ReadImage(img_info, &img_ex);
 	if (img == NULL) {
-		return 1;
+		return ERR_QR_MISSING;
 	}
 	return qr_img_decode(img, out, out_len);
 }
 
 
 int qr_decode_pixels(char *in, size_t in_len, char *out, size_t out_len) {
+	int r;
 	Image *img;
 	ImageInfo *img_info;
 	ExceptionInfo img_ex;
@@ -109,10 +114,20 @@ int qr_decode_pixels(char *in, size_t in_len, char *out, size_t out_len) {
 	img_info = qr_img_init(&img_ex);
 	img = BlobToImage(img_info, in, in_len, &img_ex);
 	if (img == NULL) {
-		return 1;
+		return ERR_QR_INVALID;
 	}
 
-	return qr_img_decode(img, out, out_len);
+	r = qr_img_decode(img, out, out_len);
+	if (r == 3) {
+		return ERR_QR_MISSING;
+	}
+	if (r == 2) {
+		return ERR_SPACE;
+	}
+	if (r) {
+		return ERR_FAIL;
+	}
+	return ERR_OK;
 }
 
 

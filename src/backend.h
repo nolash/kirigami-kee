@@ -118,6 +118,8 @@ class Backend : public QObject {
 		 */
 		int lock();
 
+		void image_catch(QString img_url);
+
 	private:
 		/// Settings used for initialization.
 		Settings *m_settings;

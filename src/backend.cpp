@@ -1,10 +1,14 @@
 #include <QFlags>
 #include <QDebug>
+#include <QImage>
+#include <QFile>
 
 #include "backend.h"
 #include "gpg.h"
 #include "settings.h"
 #include "credit.h"
+#include "qr.h"
+#include "transport.h"
 
 
 Backend::Backend(QObject *parent) : QObject(parent) {
@@ -67,8 +71,8 @@ int Backend::unlock(const QString passphrase) {
 	return r;
 }
 
-void Backend::update(int state) {
-	//update_r(instate, outstate);
+void Backend::update(int instate) {
+	update_r(State(instate), State(0));
 }
 
 void Backend::update_r(State instate, State outstate) {
@@ -81,4 +85,25 @@ QString Backend::fingerprint() {
 	char *s;
 	s = m_gpg.get_fingerprint();
 	return QString(s);
+}
+
+void Backend::image_catch(QString img_url) {
+	int r;
+	const unsigned char *in;
+	QImage img = QImage(img_url);
+	QFile *f;
+	char out_encoded[1024];
+	char out_decoded[1024];
+	size_t out_len = 1024;
+	
+	f = new QFile(img_url);
+	f->remove();
+	qDebug() << "haveimg" << img_url;
+	img = img.convertToFormat(QImage::Format_Grayscale8);
+	in = img.bits();
+	r = qr_y800_decode((char*)in, img.sizeInBytes(), img.width(), img.height(), out_encoded, &out_len);
+	if (!r) {
+		//r = unpack();
+	}
+	qDebug() << "result" << r;
 }

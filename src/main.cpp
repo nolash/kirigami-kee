@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QDebug>
 #include <QLocalServer>
+#include <QQuickStyle>
 #include <QtQuick/qquickview.h>
 #include <KLocalizedContext>
 #include <KLocalizedString>
@@ -41,6 +42,9 @@ int main(int argc, char *argv[]) {
 	QCoreApplication::setOrganizationName(QStringLiteral("defalsify"));
 	QCoreApplication::setOrganizationDomain(QStringLiteral("defalsify.org"));
 	QCoreApplication::setApplicationName(QStringLiteral("Bilateral Credit Tr4ck3R"));
+	if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
+		QQuickStyle::setStyle(QStringLiteral("org.kde.desktop"));
+	}
 
 	QQmlApplicationEngine engine;
 
