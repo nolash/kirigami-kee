@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QImage>
 #include <QFile>
+#include <QString>
 
 #include "backend.h"
 #include "gpg.h"
@@ -45,6 +46,10 @@ int Backend::lock() {
 	return 0;
 }
 
+/**
+ * \todo add duplicates check
+ *
+ */
 int Backend::add(int action, void *item) {
 	Credit *credit = (Credit*)item;
 	m_credit_model->addItem(*credit);
@@ -128,11 +133,17 @@ void Backend::image_catch(QString img_url) {
 	Q_EMIT commandProcessStart();
 }
 
+int Backend::set_preview(std::string s) {
+	m_cmd_cur_preview = QString::fromStdString(s);
+	return 0;
+}
+
 void Backend::parseNextCommand() {
 	int r;
 	char rr;
 	QByteArray v;
-	char out[1024*1024];
+	char out[1024*1024]; 
+	size_t out_len = 1024*1024;
 
 	if (m_cmd.isEmpty()) {
 		qDebug() << "parsenext command on empty queue";
@@ -141,9 +152,10 @@ void Backend::parseNextCommand() {
 	//qDebug() << s;
 
 	v = m_cmd_cur.toLocal8Bit();
-	r = preview_command(v.data(), v.length(), out, &rr);
+	//r = preview_command(v.data(), v.length(), out, &out_len);
+	r = process_rpc_command(this, v.data(), v.length(), true);
 	
-	Q_EMIT commandProcessView(r, QString(out));
+	Q_EMIT commandProcessView(r, m_cmd_cur_preview);
 }
 
 void Backend::acceptCurrentCommand() {
@@ -157,7 +169,7 @@ void Backend::acceptCurrentCommand() {
 	}
 
 	v = m_cmd_cur.toLocal8Bit();
-	r = process_rpc_command(this, v.data(), v.length(), &rr);
+	r = process_rpc_command(this, v.data(), v.length(), false);
 	if (r) {
 		qDebug() << "current command is invalid, should not happen";
 		m_cmd_cur = QString("");

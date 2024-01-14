@@ -4,6 +4,7 @@
 #include "export.h"
 #include "credit.h"
 #include "command.h"
+#include "item.h"
 extern "C" {
 #include "transport.h"
 }
@@ -11,9 +12,9 @@ extern "C" {
 #ifndef ISTESTING
 static
 #endif
-int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len) {
+int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len, bool preview) {
 	Import *im;
-	const Credit *credit;
+	Credit *credit;
 	std::ostringstream ss;
 	const char *s;
 
@@ -22,12 +23,16 @@ int process_rpc_new_certificate(Backend *backend, char *b, size_t b_len) {
 	ss << credit;
 	s = ss.str().c_str();
 	debugLog(DEBUG_DEBUG, s);
-	backend->add(0, (void*)credit);
+	if (!preview) {
+		backend->add(0, (void*)credit);
+	} else {
+		backend->set_preview(credit->preview());
+	}
 
 	return 0;
 }
 
-int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *result) {
+int process_rpc_command(Backend *backend, char *buf, size_t buf_len, bool preview) {
 	int r;
 	char cmd;
 	size_t unpacked_len;
@@ -42,19 +47,18 @@ int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *resul
 
 	switch(cmd){
 		case 1:
-			r = process_rpc_new_certificate(backend, unpacked+1, unpacked_len-1);
+			r = process_rpc_new_certificate(backend, unpacked+1, unpacked_len-1, preview);
 			break;
 		default:
-			*result = 1;
 			debugLog(DEBUG_ERROR, "unknown ipc command");
 			return 1;
 	}
-	*result = 0;
 	debugLog(DEBUG_TRACE, "processed ipc command");
 	return 0;
 }
 
-int preview_command(char *in, size_t in_len, char *out, char *result) {
+int preview_command(char *in, size_t in_len, char *out, size_t *out_len) {
 	strcpy(out, "# foo\n\n## bar\n\nhey ho\n\n* one\n*two\n\n");
+	*out_len = strlen(out);
 	return 0;
 }

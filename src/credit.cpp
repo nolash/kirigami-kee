@@ -3,6 +3,7 @@
 #include <QByteArray>
 
 #include "credit.h"
+#include "item.h"
 #include "export.h"
 
 
@@ -32,6 +33,10 @@ int Credit::serialize(Export *ex) {
 	s = (char*)m_description.c_str();
 	ex->addItem(s, m_description.length());
 	return 0;
+}
+
+std::string Credit::preview() {
+	return "#foo\n\n##bar\n";
 }
 
 /**

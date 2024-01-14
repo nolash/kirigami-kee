@@ -6,7 +6,7 @@
 
 
 /// Define interface for rpc command processor, not exported by rpc package.
-int process_rpc_command(Backend *backend, char *buf, size_t buf_len, char *result);
+int process_rpc_command(Backend *backend, char *buf, size_t buf_len, bool preview);
 
 
 int RpcTest::connect_test(RpcSocket *rpc) {
@@ -69,7 +69,7 @@ int test_processor() {
 	backend.set_credit_list(&credit_model);
 
 	c = strlen(data) + 1;
-	r = process_rpc_command(&backend, data, c, &r_rpc);
+	r = process_rpc_command(&backend, data, c, false);
 
 	return r;
 }

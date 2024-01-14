@@ -78,6 +78,7 @@ class Backend : public QObject {
 		 *
 		 */
 		int add(int action, void* item);
+		int set_preview(std::string s);
 		/// Emitted when application state changes.
 		Q_SIGNAL void stateChanged();
 		/// Emitted when identity public key is locked.
@@ -144,6 +145,7 @@ class Backend : public QObject {
 		/// Pending commands to process
 		QQueue<QString> m_cmd;
 		QString m_cmd_cur;
+		QString m_cmd_cur_preview;
 		bool m_busy;
 };
 

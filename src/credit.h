@@ -1,9 +1,10 @@
-#ifndef _CREDIT_H
-#define _CREDIT_H
+#ifndef _KEE_CREDIT_H
+#define _KEE_CREDIT_H
 
 #include <QAbstractListModel>
 
 #include "export.h"
+#include "item.h"
 
 // based on https://code.qt.io/cgit/qt/qtdeclarative.git/tree/examples/quick/models/abstractitemmodel?h=5.15
 
@@ -13,13 +14,14 @@
  *
  * \todo Define virtual class.
  */
-class Credit {
+class Credit : public UserItem {
 
 public:
 	/// Constructor for importing data from memory.
 	Credit(Import *im);
 	/// Constructor for directly setting values for instance.
 	Credit(std::string name, std::string description);
+	~Credit() {};
 	/// Name getter
 	QString name() const;
 	/// Description getter.
@@ -34,6 +36,7 @@ public:
 	 * \todo Should use data in instance?
 	 */
 	int sum(const char *in, size_t in_len, char *out, size_t *out_len);
+	std::string preview() override;
 private:
 	/// cached name
 	std::string m_name;
@@ -80,4 +83,4 @@ private:
 /// String representation of credit.
 std::ostream& operator << (std::ostream &out, const Credit *o);
 
-#endif // _CREDIT_H
+#endif // _KEE_CREDIT_H
