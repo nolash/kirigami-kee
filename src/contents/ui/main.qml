@@ -26,6 +26,7 @@ Kirigami.ApplicationWindow {
 				icon.name: "view-barcode-qr"
 				onTriggered: function () {
 					pageStack.push(qrscanner);
+					camera.start();
 					shutter.start();
 				}
 			},
@@ -90,7 +91,7 @@ Kirigami.ApplicationWindow {
 		Connections {
 			target: pageStack
 			function onPagePushed() {
-				console.log("bar");
+				console.log("page pushed");
 			}
 		}	
 	}
@@ -137,6 +138,7 @@ Kirigami.ApplicationWindow {
 						level: 1
 						text: "head"
 					}
+
 
 					ColumnLayout {
 						Kirigami.Heading {
@@ -207,8 +209,8 @@ Kirigami.ApplicationWindow {
 				}
 				imageCapture {
 					id: camcap
-					onImageCaptured: function (reqid, img) {
-						Backend.image_catch(camcap.capturedImagePath);
+					onImageSaved: function (reqid, img) {
+						Backend.image_catch(img);
 					}
 				}
 			}
@@ -218,6 +220,7 @@ Kirigami.ApplicationWindow {
 				icon.name: "gtk-close"
 				text: "close"
 				onTriggered: function() {
+					camera.stop();
 					shutter.stop();
 					pageStack.pop();
 				}
@@ -228,17 +231,75 @@ Kirigami.ApplicationWindow {
 	Item {
 		Timer {
 			id: shutter
-			interval: 500 
+			interval: 1000 
 			repeat: true
 			running: false
 			triggeredOnStart: true
 			onTriggered: function() {
-				console.log("shot");
-				camera.imageCapture.capture();
+				if (camera.imageCapture.ready) {
+					console.log("shot");
+					camera.imageCapture.capture();
+				}
+			}
+		}
+		Connections {
+			target: Backend
+			function onCommandProcessStart() {
+				if (!shutter.running) {
+					return;
+				}
+				shutter.stop();
+				pageStack.pop();
+				pageStack.push(commandConfirm);
 			}
 		}
 	}
-	
+
+	Kirigami.Page {
+		id: commandConfirm
+		visible: false
+		ColumnLayout {
+			Controls.Label {
+				id: commandConfirmPrepareState
+				text: "processing..."
+			}
+			Text {
+				id: commandPreview
+				text: ""
+				textFormat: Text.MarkdownText
+			}
+			RowLayout {
+				Controls.Button {
+					id: commandConfirmActionOk
+					visible: false
+					text: i18n("yay")
+					onClicked: function() {
+						pageStack.pop();
+						commandPreview.text = "";
+						commandConfirmActionOk.visible = false;
+						Backend.acceptCurrentCommand();
+					}
+				}
+				Controls.Button {
+					id: commandConfirmActionAbort
+					text: i18n("cancel")
+					onClicked: function() {
+						pageStack.pop();
+						commandPreview.text = "";
+						commandConfirmActionOk.visible = false;
+					}
+
+				}
+			}
+		}
+		Connections {
+			target: Backend
+			function onCommandProcessView(r, s) {
+				camera.stop();
+				commandConfirmPrepareState.text = "parsed";
+				commandPreview.text = s;
+				commandConfirmActionOk.visible = true;
+			}
+		}
+	}	
 }
-
-

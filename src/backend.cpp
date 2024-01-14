@@ -8,13 +8,15 @@
 #include "settings.h"
 #include "credit.h"
 #include "qr.h"
-#include "transport.h"
+#include "command.h"
 
 
 Backend::Backend(QObject *parent) : QObject(parent) {
 	m_state = State(0);
 	m_timer_lock = 0x0;
 	m_credit_model = 0x0;
+	m_busy = false;
+	connect(this, &Backend::commandProcessStart, this, &Backend::parseNextCommand);
 }
 
 unsigned int Backend::state() {
@@ -88,6 +90,7 @@ QString Backend::fingerprint() {
 }
 
 void Backend::image_catch(QString img_url) {
+	bool rf;
 	int r;
 	const unsigned char *in;
 	QImage img = QImage(img_url);
@@ -95,15 +98,72 @@ void Backend::image_catch(QString img_url) {
 	char out_encoded[1024];
 	char out_decoded[1024];
 	size_t out_len = 1024;
-	
+	QString cmd;
+
 	f = new QFile(img_url);
-	f->remove();
+	rf = f->remove();
+	if (!rf) {
+		qDebug() << "could not remove" << img_url;
+	}
+	if (m_busy) {
+		return;
+	}
+	m_busy = true;
+	if (img.sizeInBytes() == 0) {
+		qDebug() << "zeroimg" << img_url;
+		m_busy = false;
+		return;
+	}
 	qDebug() << "haveimg" << img_url;
 	img = img.convertToFormat(QImage::Format_Grayscale8);
 	in = img.bits();
 	r = qr_y800_decode((char*)in, img.sizeInBytes(), img.width(), img.height(), out_encoded, &out_len);
-	if (!r) {
-		//r = unpack();
-	}
 	qDebug() << "result" << r;
+	if (r) {
+		m_busy = false;
+		return;
+	}
+	cmd = QString(out_encoded);
+	m_cmd.enqueue(cmd);
+	Q_EMIT commandProcessStart();
+}
+
+void Backend::parseNextCommand() {
+	int r;
+	char rr;
+	QByteArray v;
+	char out[1024*1024];
+
+	if (m_cmd.isEmpty()) {
+		qDebug() << "parsenext command on empty queue";
+	}
+	m_cmd_cur = m_cmd.dequeue();
+	//qDebug() << s;
+
+	v = m_cmd_cur.toLocal8Bit();
+	r = preview_command(v.data(), v.length(), out, &rr);
+	
+	Q_EMIT commandProcessView(r, QString(out));
+}
+
+void Backend::acceptCurrentCommand() {
+	int r;
+	char rr;
+	QByteArray v;
+	char out[1024*1024];
+
+	if (m_cmd_cur == "") {
+		qDebug() << "parse current command on empty command";
+	}
+
+	v = m_cmd_cur.toLocal8Bit();
+	r = process_rpc_command(this, v.data(), v.length(), &rr);
+	if (r) {
+		qDebug() << "current command is invalid, should not happen";
+		m_cmd_cur = QString("");
+	}
+	
+	m_busy = false; // replace with state
+	Q_EMIT commandProcessEnd(r);
+
 }

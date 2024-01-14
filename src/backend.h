@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QList>
+#include <QQueue>
 
 #include "gpg.h"
 #include "settings.h"
@@ -81,6 +82,9 @@ class Backend : public QObject {
 		Q_SIGNAL void stateChanged();
 		/// Emitted when identity public key is locked.
 		Q_SIGNAL void keyLock();
+		Q_SIGNAL void commandProcessStart();
+		Q_SIGNAL void commandProcessView(int r, QString s);
+		Q_SIGNAL void commandProcessEnd(int r);
 		Q_DECLARE_FLAGS(States, State)
 		Q_FLAG(States)
 
@@ -120,6 +124,8 @@ class Backend : public QObject {
 
 		void image_catch(QString img_url);
 
+		void parseNextCommand();
+		void acceptCurrentCommand();
 	private:
 		/// Settings used for initialization.
 		Settings *m_settings;
@@ -135,6 +141,10 @@ class Backend : public QObject {
 		QTimer *m_timer_lock;
 		/// Persistent storage of browseable items.
 		Db *m_db;
+		/// Pending commands to process
+		QQueue<QString> m_cmd;
+		QString m_cmd_cur;
+		bool m_busy;
 };
 
 //class CreditLine : public QObject {
